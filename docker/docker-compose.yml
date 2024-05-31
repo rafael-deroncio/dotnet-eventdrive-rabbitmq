@@ -1,0 +1,15 @@
+version: '3'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: EventBusRabbitMQ
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: michael_scott
+      RABBITMQ_DEFAULT_PASS: IoSo1F4nt4$71c0
+      RABBITMQ_LOAD_DEFINITIONS: /etc/rabbitmq/definitions.json
+    volumes:
+      - ../rabbitmq:/etc/rabbitmq
+    command: ["sh", "-c", "rabbitmq-plugins enable rabbitmq_management && rabbitmq-server"]
