@@ -1,7 +1,7 @@
 {
   "users": [
     {
-      "name": "michael_scott",
+      "name": "mscott",
       "password": "IoSo1F4nt4$71c0",
       "hashing_algorithm": "rabbit_password_hashing_sha256",
       "tags": "administrator"
@@ -14,7 +14,7 @@
   ],
   "permissions": [
     {
-      "user": "michael_scott",
+      "user": "mscott",
       "vhost": "/",
       "configure": ".*",
       "write": ".*",
