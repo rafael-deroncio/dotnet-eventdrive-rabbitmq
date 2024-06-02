@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AthenasAcademy.Certificate.Test", "AthenasAcademy.Certificate.Test\AthenasAcademy.Certificate.Test.csproj", "{8CBD3767-9243-44F5-817B-198B4DA2E96E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AthenasAcademy.Certificate.Handling", "AthenasAcademy.Certificate.Handling\AthenasAcademy.Certificate.Handling.csproj", "{D36AAE1E-733C-4AF1-BB56-F10325A73FC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AthenasAcademy.Certificate.API", "AthenasAcademy.Certificate.API\AthenasAcademy.Certificate.API.csproj", "{501AF569-81BC-43BD-9599-002B0B011F4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AthenasAcademy.Certificate.Domain", "AthenasAcademy.Certificate.Domain\AthenasAcademy.Certificate.Domain.csproj", "{F1B836C0-EA85-422C-B772-47977D3D05EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AthenasAcademy.Certificate.Core", "AthenasAcademy.Certificate.Core\AthenasAcademy.Certificate.Core.csproj", "{8CB2FF7E-3936-486D-A02F-844DFE8897D5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8CBD3767-9243-44F5-817B-198B4DA2E96E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CBD3767-9243-44F5-817B-198B4DA2E96E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CBD3767-9243-44F5-817B-198B4DA2E96E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CBD3767-9243-44F5-817B-198B4DA2E96E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D36AAE1E-733C-4AF1-BB56-F10325A73FC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D36AAE1E-733C-4AF1-BB56-F10325A73FC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D36AAE1E-733C-4AF1-BB56-F10325A73FC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D36AAE1E-733C-4AF1-BB56-F10325A73FC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{501AF569-81BC-43BD-9599-002B0B011F4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{501AF569-81BC-43BD-9599-002B0B011F4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{501AF569-81BC-43BD-9599-002B0B011F4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{501AF569-81BC-43BD-9599-002B0B011F4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1B836C0-EA85-422C-B772-47977D3D05EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1B836C0-EA85-422C-B772-47977D3D05EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1B836C0-EA85-422C-B772-47977D3D05EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1B836C0-EA85-422C-B772-47977D3D05EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CB2FF7E-3936-486D-A02F-844DFE8897D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CB2FF7E-3936-486D-A02F-844DFE8897D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CB2FF7E-3936-486D-A02F-844DFE8897D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CB2FF7E-3936-486D-A02F-844DFE8897D5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
