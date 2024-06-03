@@ -1,6 +1,6 @@
 ﻿namespace AthenasAcademy.Certificate.Domain;
 
-public record class FileResponse
+public record FileResponse
 {
     public string Name {get; set;}
     public string Download {get; set;}

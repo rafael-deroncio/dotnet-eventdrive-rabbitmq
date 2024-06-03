@@ -1,6 +1,6 @@
 ﻿namespace AthenasAcademy.Certificate.Domain.Responses;
 
-public record class DetailsResponse
+public record DetailsResponse
 {
     public string Studant { get; set; }
     public string Course { get; set; }
