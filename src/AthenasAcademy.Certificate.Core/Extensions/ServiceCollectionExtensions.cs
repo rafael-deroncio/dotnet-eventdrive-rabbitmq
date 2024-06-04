@@ -1,5 +1,4 @@
 ﻿using Amazon;
-using Amazon.Extensions.NETCore.Setup;
 using Amazon.Runtime;
 using Amazon.S3;
 using AthenasAcademy.Certificate.Core.Configurations.Mapper;
@@ -10,7 +9,6 @@ using AthenasAcademy.Certificate.Core.EventBus.Interfaces;
 using AthenasAcademy.Certificate.Core.Options;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
-using Microsoft.Extensions.Options;
 
 namespace AthenasAcademy.Certificate.Core.Extensions;
 

@@ -1,5 +1,6 @@
 ﻿using AthenasAcademy.Certificate.API.Middlewares;
 using AthenasAcademy.Certificate.Core.Configurations.Settings;
+using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
 
 namespace AthenasAcademy.Certificate.API.Extensions;
 
@@ -41,6 +42,18 @@ public static class ApplicationBuilderExtensions
     public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder builder)
     {
         builder.UseMiddleware<GlobalHandlerExceptionMiddleware>();
+        return builder;
+    }
+
+    public static IApplicationBuilder InitializeBucketS3(this IApplicationBuilder builder)
+    {
+        IBucketRepository s3 = builder.ApplicationServices.GetRequiredService<IBucketRepository>();
+
+        if (s3 != null)
+            s3.InitializeBucketAsync().Wait();
+        else
+            throw new Exception("IBucketRepository service is not registered in the DI container.");
+        
         return builder;
     }
 }

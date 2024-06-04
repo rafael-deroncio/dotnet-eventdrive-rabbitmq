@@ -73,4 +73,6 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
+app.InitializeBucketS3();
+
 app.Run();
