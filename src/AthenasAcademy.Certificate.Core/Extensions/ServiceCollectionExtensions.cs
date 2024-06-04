@@ -1,4 +1,5 @@
-﻿using Amazon.Extensions.NETCore.Setup;
+﻿using Amazon;
+using Amazon.Extensions.NETCore.Setup;
 using Amazon.Runtime;
 using Amazon.S3;
 using AthenasAcademy.Certificate.Core.Configurations.Mapper;
@@ -7,6 +8,9 @@ using AthenasAcademy.Certificate.Core.Configurations.Settings;
 using AthenasAcademy.Certificate.Core.EventBus;
 using AthenasAcademy.Certificate.Core.EventBus.Interfaces;
 using AthenasAcademy.Certificate.Core.Options;
+using AthenasAcademy.Certificate.Core.Repositories.Bucket;
+using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace AthenasAcademy.Certificate.Core.Extensions;
 
@@ -31,18 +35,22 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAWSS3(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<AWSSettings>(configuration.GetSection("AWS"));
+        AWSSettings settings = configuration.GetSection("AWS").Get<AWSSettings>();
 
-        AWSOptions options = configuration.GetAWSOptions();
+        AmazonS3Config config = new()
+        {
+            RegionEndpoint = RegionEndpoint.GetBySystemName(settings.Region),
+            ServiceURL = settings.ServiceURL,
+            ForcePathStyle = settings.ForcePathStyle
+        };
 
-        string accessKey = configuration["AWS:AccessKey"];
-        string secretKey = configuration["AWS:SecretKey"];
-        
-        options.Credentials = new BasicAWSCredentials(accessKey, secretKey);
+        BasicAWSCredentials credentials = new(settings.AccessKey, settings.SecretKey);
 
-        services.AddDefaultAWSOptions(options);
-        services.AddAWSService<IAmazonS3>();
+        AmazonS3Client client = new(credentials, config);
 
-        // services.AddSingleton<IBucketRepository, BucketRepository>();
+        services.AddSingleton<IAmazonS3>(client);
+
+        services.AddSingleton<IBucketRepository, BucketRepository>();
 
         return services;
     }
