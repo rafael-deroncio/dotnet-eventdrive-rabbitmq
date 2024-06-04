@@ -7,4 +7,6 @@ public record AWSSettings
     public string SecretKey { get; set; }
     public string BucketName { get; set; }
     public string Region { get; set; }
+    public int Expires { get; set; }
+    public bool ForcePathStyle { get; set; }
 }
