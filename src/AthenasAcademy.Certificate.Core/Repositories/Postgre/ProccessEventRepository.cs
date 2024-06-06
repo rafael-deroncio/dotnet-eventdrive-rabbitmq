@@ -95,7 +95,7 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
             bool containsError = !string.IsNullOrEmpty(error);
             string query = @$"UPDATE EVENT_PROCCESS
                                  SET STATUS = @Status,
-                                     ERROR = @Error,
+                                     {(containsError ? "ERROR = @Error," : "")}
                                      UPDATED = NOW() 
                                WHERE ID = @Proccess";
 

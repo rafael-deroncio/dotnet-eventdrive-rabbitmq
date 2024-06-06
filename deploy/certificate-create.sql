@@ -36,12 +36,21 @@ CREATE TABLE event_proccess_status (
   status VARCHAR(50) NOT NULL,
   active BOOLEAN NOT NULL DEFAULT false,
   created TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated TIMESTAMP NOT NULL DEFAULT NOW()
+  updated TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT ck_status CHECK (status IN ('OnProcecess', 'Pending', 'Success', 'Error'))
+
 );
+
+INSERT INTO event_proccess_status (id, status)
+VALUES 
+    (1, 'OnProcecess'),
+    (2, 'Pending'),
+    (3, 'Success'),
+    (4, 'Error');
 
 CREATE TABLE event_proccess (
   id SERIAL PRIMARY KEY,
-  id_status INTEGER NOT NULL,
+  status INTEGER NOT NULL,
   error TEXT NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0,
   json_event JSONB NOT NULL,
