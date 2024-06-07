@@ -1,42 +1,27 @@
 -- Drop existing tables if they exist
+DROP TABLE IF EXISTS certificates;
 DROP TABLE IF EXISTS certificate_files;
 DROP TABLE IF EXISTS file_details;
 DROP TABLE IF EXISTS event_proccess;
 DROP TABLE IF EXISTS event_proccess_status;
-DROP TABLE IF EXISTS certificates;
 
 -- Drop existing sequences if they exist
-DROP SEQUENCE IF EXISTS certificates_id_seq;
 DROP SEQUENCE IF EXISTS file_details_id_seq;
 DROP SEQUENCE IF EXISTS certificate_files_id_seq;
+DROP SEQUENCE IF EXISTS certificates_id_seq;
 DROP SEQUENCE IF EXISTS event_proccess_id_seq;
 
 -- Create sequences
-CREATE SEQUENCE certificates_id_seq;
 CREATE SEQUENCE file_details_id_seq;
 CREATE SEQUENCE certificate_files_id_seq;
+CREATE SEQUENCE certificates_id_seq;
 CREATE SEQUENCE event_proccess_id_seq;
 
 -- Set the starting value of the sequences to a random number
-SELECT setval('certificates_id_seq', round(random() * (99999 - 10000) + 10000)::bigint);
 SELECT setval('file_details_id_seq', round(random() * (99999 - 10000) + 10000)::bigint);
 SELECT setval('certificate_files_id_seq', round(random() * (99999 - 10000) + 10000)::bigint);
+SELECT setval('certificates_id_seq', round(random() * (99999 - 10000) + 10000)::bigint);
 SELECT setval('event_proccess_id_seq', round(random() * (99999 - 10000) + 10000)::bigint);
-
-
--- Create the certificates table with random sequence
-CREATE TABLE certificates (
-  id INTEGER PRIMARY KEY DEFAULT nextval('certificates_id_seq'),
-  student VARCHAR(100) NOT NULL,
-  document VARCHAR(100) NOT NULL,
-  registration VARCHAR(50) NOT NULL,
-  course VARCHAR(100) NOT NULL,
-  completion DATE NOT NULL,
-  utilization NUMERIC(5, 2) NOT NULL,
-  active BOOLEAN NOT NULL DEFAULT false,
-  created TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated TIMESTAMP NOT NULL DEFAULT NOW()
-);
 
 -- Create the file_details table with random sequence
 CREATE TABLE file_details (
@@ -52,13 +37,27 @@ CREATE TABLE file_details (
 -- Create the certificate_files table with random sequence
 CREATE TABLE certificate_files (
   id INTEGER PRIMARY KEY DEFAULT nextval('certificate_files_id_seq'),
-  id_certificate INTEGER,
-  id_file INTEGER NOT NULL,
+  id_file_details INTEGER NOT NULL,
   active BOOLEAN NOT NULL DEFAULT false,
   created TIMESTAMP NOT NULL DEFAULT NOW(),
   updated TIMESTAMP NOT NULL DEFAULT NOW(),
-  CONSTRAINT fk_certificate FOREIGN KEY (id_certificate) REFERENCES certificates (id) ON DELETE CASCADE,
-  CONSTRAINT fk_file FOREIGN KEY (id_file) REFERENCES file_details (id) ON DELETE CASCADE
+  CONSTRAINT fk_file_details FOREIGN KEY (id_file_details) REFERENCES file_details (id) ON DELETE CASCADE
+);
+
+-- Create the certificates table with random sequence
+CREATE TABLE certificates (
+  id INTEGER PRIMARY KEY DEFAULT nextval('certificates_id_seq'),
+  id_certificate_files INTEGER,
+  student VARCHAR(100) NOT NULL,
+  document VARCHAR(100) NOT NULL,
+  registration VARCHAR(50) NOT NULL,
+  course VARCHAR(100) NOT NULL,
+  completion DATE NOT NULL,
+  utilization NUMERIC(5, 2) NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT false,
+  created TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT fk_certificate_files FOREIGN KEY (id_certificate_files) REFERENCES certificate_files (id) ON DELETE CASCADE
 );
 
 -- Create the event_proccess_status table with random sequence
