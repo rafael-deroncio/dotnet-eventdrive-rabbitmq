@@ -10,4 +10,5 @@ public record CertificateModel : CommonDataDTO
     public string Course { get; set; }
     public DateTime Completion { get; set; }
     public decimal Utilization { get; set; }
+    public  CertificateFileModel File { get; set; }
 }
