@@ -5,11 +5,24 @@ DROP TABLE IF EXISTS event_proccess;
 DROP TABLE IF EXISTS event_proccess_status;
 DROP TABLE IF EXISTS certificates;
 
--- Create sequences with random starting values
-CREATE SEQUENCE certificates_id_seq START WITH FLOOR(random() * 10000 + 1);
-CREATE SEQUENCE file_details_id_seq START WITH FLOOR(random() * 10000 + 1);
-CREATE SEQUENCE certificate_files_id_seq START WITH FLOOR(random() * 10000 + 1);
-CREATE SEQUENCE event_proccess_id_seq START WITH FLOOR(random() * 10000 + 1);
+-- Drop existing sequences if they exist
+DROP SEQUENCE IF EXISTS certificates_id_seq;
+DROP SEQUENCE IF EXISTS file_details_id_seq;
+DROP SEQUENCE IF EXISTS certificate_files_id_seq;
+DROP SEQUENCE IF EXISTS event_proccess_id_seq;
+
+-- Create sequences
+CREATE SEQUENCE certificates_id_seq;
+CREATE SEQUENCE file_details_id_seq;
+CREATE SEQUENCE certificate_files_id_seq;
+CREATE SEQUENCE event_proccess_id_seq;
+
+-- Set the starting value of the sequences to a random number
+SELECT setval('certificates_id_seq', round(random() * (99999 - 10000) + 10000)::bigint);
+SELECT setval('file_details_id_seq', round(random() * (99999 - 10000) + 10000)::bigint);
+SELECT setval('certificate_files_id_seq', round(random() * (99999 - 10000) + 10000)::bigint);
+SELECT setval('event_proccess_id_seq', round(random() * (99999 - 10000) + 10000)::bigint);
+
 
 -- Create the certificates table with random sequence
 CREATE TABLE certificates (
@@ -50,7 +63,7 @@ CREATE TABLE certificate_files (
 
 -- Create the event_proccess_status table with random sequence
 CREATE TABLE event_proccess_status (
-  id INTEGER PRIMARY KEY DEFAULT nextval('event_proccess_status_id_seq'),
+  id INTEGER PRIMARY KEY,
   status VARCHAR(50) NOT NULL,
   active BOOLEAN NOT NULL DEFAULT false,
   created TIMESTAMP NOT NULL DEFAULT NOW(),
