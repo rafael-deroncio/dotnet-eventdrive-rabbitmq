@@ -24,7 +24,7 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         try
         {
             string query = @"SELECT EVP.STATUS 
-                              FROM EVENT_PROCCESS EVP 
+                              FROM EVENT_PROCCESS
                              WHERE EVP.ID = @Proccess";
 
             using IDbConnection connection = GetConnection();
@@ -93,19 +93,17 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         try
         {
             bool containsError = !string.IsNullOrEmpty(error);
+            string addTry = containsError ? "(SELECT ATTEMPS + 1 FROM EVENT_PROCCESS WHERE @Proccess)" : "";
+
             string query = @$"UPDATE EVENT_PROCCESS
                                  SET STATUS = @Status,
                                      {(containsError ? "ERROR = @Error," : "")}
+                                     {(!string.IsNullOrEmpty(addTry) ? $"ATTEMPS = {addTry}," : "")}
                                      UPDATED = NOW() 
                                WHERE ID = @Proccess";
 
-            DynamicParameters parameters = new();
-            if (containsError) parameters.Add("ERROR", error);
-            parameters.Add("Status", status);
-            parameters.Add("Proccess", proccess);
-
             using IDbConnection connection = GetConnection();
-            await connection.QueryFirstAsync<int>(query, parameters);
+            await connection.QueryFirstAsync<int>(query, new { status, proccess });
         }
         catch (Exception exception)
         {

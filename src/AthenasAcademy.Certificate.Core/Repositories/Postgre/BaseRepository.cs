@@ -37,6 +37,7 @@ public class BaseRepository
             Password = _settings.Password,
             Timeout = 20,
             CommandTimeout = 20,
+            SearchPath = _settings.SearchPath,
             SslMode = _settings.SslMode ? 
                         SslMode.Disable : SslMode.Allow,
         };
