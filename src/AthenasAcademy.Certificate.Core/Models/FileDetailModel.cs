@@ -4,6 +4,8 @@ namespace AthenasAcademy.Certificate.Core;
 
 public record FileDetailModel : CommonDataDTO
 {
+    public int CodeCertificateFile { get; set; }
+    public int CodeCertificate { get; set; }
     public string File { get; set; }
     public string Type { get; set; }
     public string Path { get; set; }

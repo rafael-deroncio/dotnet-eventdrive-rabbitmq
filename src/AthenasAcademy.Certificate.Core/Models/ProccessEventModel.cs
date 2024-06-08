@@ -4,7 +4,8 @@ namespace AthenasAcademy.Certificate.Core.Models;
 
 public record ProccessEventModel : CommonDataDTO
 {
-    public int Status { get; set; }
+    public int CodeProccessEvent { get; set; }
+    public int CodeStatus { get; set; }
     public string Error { get; set; }
     public int Attemps { get; set; }
     public string Event { get; set; }

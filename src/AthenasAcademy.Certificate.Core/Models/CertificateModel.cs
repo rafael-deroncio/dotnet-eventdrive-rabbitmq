@@ -4,11 +4,12 @@ namespace AthenasAcademy.Certificate.Core.Models;
 
 public record CertificateModel : CommonDataDTO
 {
-    public string Student { get; set; }
-    public string Document { get; set; }
-    public string Registration { get; set; }
+    public int CodeCertificate { get; set; }
+    public string StudentName { get; set; }
+    public string StudentDocument { get; set; }
+    public string StudentRegistration { get; set; }
     public string Course { get; set; }
     public DateTime Completion { get; set; }
     public decimal Utilization { get; set; }
-    public  CertificateFileModel File { get; set; }
+    public List<FileDetailModel> FileDetails { get; set; }
 }
