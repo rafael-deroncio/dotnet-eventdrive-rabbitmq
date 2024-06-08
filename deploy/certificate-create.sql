@@ -1,90 +1,77 @@
 -- Drop existing tables if they exist
-DROP TABLE IF EXISTS certificates;
-DROP TABLE IF EXISTS certificate_files;
-DROP TABLE IF EXISTS file_details;
-DROP TABLE IF EXISTS event_proccess;
-DROP TABLE IF EXISTS event_proccess_status;
+DROP TABLE IF EXISTS CERTIFICATE_FILES;
+DROP TABLE IF EXISTS CERTIFICATES;
+DROP TABLE IF EXISTS PROCCESS_EVENT;
+DROP TABLE IF EXISTS PROCCESS_EVENT_STATUS;
 
 -- Drop existing sequences if they exist
-DROP SEQUENCE IF EXISTS file_details_cod_seq;
-DROP SEQUENCE IF EXISTS certificate_files_cod_seq;
-DROP SEQUENCE IF EXISTS certificates_cod_seq;
-DROP SEQUENCE IF EXISTS event_proccess_cod_seq;
+DROP SEQUENCE IF EXISTS seq_certificates;
+DROP SEQUENCE IF EXISTS seq_certificates_files;
+DROP SEQUENCE IF EXISTS seq_event_proccess;
 
 -- Create sequences
-CREATE SEQUENCE file_details_cod_seq;
-CREATE SEQUENCE certificate_files_cod_seq;
-CREATE SEQUENCE certificates_cod_seq;
-CREATE SEQUENCE event_proccess_cod_seq;
+CREATE SEQUENCE seq_certificates;
+CREATE SEQUENCE seq_certificates_files;
+CREATE SEQUENCE seq_event_proccess;
 
 -- Set the starting value of the sequences to a random number
-SELECT setval('file_details_cod_seq', round(random() * (99999 - 10000) + 10000)::bigint);
-SELECT setval('certificate_files_cod_seq', round(random() * (99999 - 10000) + 10000)::bigint);
-SELECT setval('certificates_cod_seq', round(random() * (99999 - 10000) + 10000)::bigint);
-SELECT setval('event_proccess_cod_seq', round(random() * (99999 - 10000) + 10000)::bigint);
+SELECT setval('seq_certificates', round(random() * (99999 - 10000) + 10000)::bigint);
+SELECT setval('seq_certificates_files', round(random() * (99999 - 10000) + 10000)::bigint);
+SELECT setval('seq_event_proccess', round(random() * (99999 - 10000) + 10000)::bigint);
 
 -- Create the certificates table with random sequence
-CREATE TABLE certificates (
-  cod_certificate INTEGER PRIMARY KEY DEFAULT nextval('certificates_id_seq'),
-  student VARCHAR(100) NOT NULL,
-  document VARCHAR(100) NOT NULL,
-  registration VARCHAR(50) NOT NULL,
-  course VARCHAR(100) NOT NULL,
-  completion DATE NOT NULL,
-  utilization NUMERIC(5, 2) NOT NULL,
-  active BOOLEAN NOT NULL DEFAULT false,
-  created TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated TIMESTAMP NOT NULL DEFAULT NOW(),
+CREATE TABLE CERTIFICATES (
+  CODE_CERTIFICATE INTEGER PRIMARY KEY DEFAULT nextval('seq_certificates'),
+  STUDANT_NAME VARCHAR(100) NOT NULL,
+  STUDANT_DOCUMENT VARCHAR(100) NOT NULL,
+  STUDANT_REGISTRATION VARCHAR(50) NOT NULL,
+  COURSE VARCHAR(100) NOT NULL,
+  COMPLETATION DATE NOT NULL,
+  UTILIZATION NUMERIC(5, 2) NOT NULL,
+  CREATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
+  UPDATED_AT TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- Create the file_details table with random sequence
-CREATE TABLE file_details (
-  cod_file INTEGER PRIMARY KEY DEFAULT nextval('file_details_id_seq'),
-  file TEXT NOT NULL,
-  type VARCHAR(50) NOT NULL,
-  path VARCHAR(255) NOT NULL,
-  size INTEGER NOT NULL,
-  created TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated TIMESTAMP NOT NULL DEFAULT NOW(),
-);
-
--- Create the certificate_files table with random sequence
-CREATE TABLE certificate_files (
-  cod_certificate_file INTEGER PRIMARY KEY DEFAULT nextval('certificate_files_id_seq'),
-  cod_certificate INTEGER NOT NULL,
-  cod_file_detail INTEGER NOT NULL,
-  created TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated TIMESTAMP NOT NULL DEFAULT NOW()
+CREATE TABLE CERTIFICATE_FILES (
+  CODE_CERTIFICATE_FILE INTEGER PRIMARY KEY DEFAULT nextval('seq_certificates_files'),
+  CODE_CERTIFICATE INTEGER NOT NULL,
+  FILE TEXT NOT NULL,
+  TYPE VARCHAR(50) NOT NULL,
+  PATH VARCHAR(255) NOT NULL,
+  SIZE INTEGER NOT NULL,
+  CREATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
+  UPDATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT FK_CERTIFICATE FOREIGN KEY (CODE_CERTIFICATE) REFERENCES CERTIFICATES (CODE_CERTIFICATE) ON DELETE CASCADE
 );
 
 -- Create the event_proccess_status table with random sequence
-CREATE TABLE event_proccess_status (
-  cod_event_status INTEGER PRIMARY KEY,
-  desc_status VARCHAR(50) NOT NULL,
-  active BOOLEAN NOT NULL DEFAULT false,
-  created TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated TIMESTAMP NOT NULL DEFAULT NOW(),
-  CONSTRAINT ck_status CHECK (desc_status IN ('OnProcecess', 'Pending', 'Success', 'Error'))
+CREATE TABLE PROCCESS_EVENT_STATUS (
+  CODE_STATUS INTEGER PRIMARY KEY,
+  DESCRIPTION VARCHAR(50) NOT NULL,
+  ACTIVE BOOLEAN NOT NULL DEFAULT false,
+  CREATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
+  UPDATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT CK_STATUS_DESCRIPTION CHECK (DESCRIPTION IN ('OnProcecess', 'Pending', 'Success', 'Error'))
 );
 
--- Insert initial values into event_proccess_status with random IDs
-INSERT INTO event_proccess_status (id, status)
+-- Insert initial values into event_proccess_status with IDs
+INSERT INTO PROCCESS_EVENT_STATUS (CODE_STATUS, DESCRIPTION, ACTIVE)
 VALUES 
-    (1, 'OnProcecess'),
-    (2, 'Pending'),
-    (3, 'Success'),
-    (4, 'Error');
+    (1, 'OnProcecess', true),
+    (2, 'Pending', true),
+    (3, 'Success', true),
+    (4, 'Error', true);
 
 -- Create the event_proccess table with random sequence
-CREATE TABLE event_proccess (
-  cod_event_proccess INTEGER PRIMARY KEY DEFAULT nextval('event_proccess_id_seq'),
-  cod_event_status INTEGER NOT NULL,
-  error TEXT NOT NULL,
-  attempts INTEGER NOT NULL DEFAULT 0,
-  json_event JSONB NOT NULL,
-  finished BOOLEAN NOT NULL DEFAULT false,
-  active BOOLEAN NOT NULL DEFAULT false,
-  created TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated TIMESTAMP NOT NULL DEFAULT NOW(),
-  CONSTRAINT fk_event_status FOREIGN KEY (cod_event_status) REFERENCES event_proccess_status (cod_event_status) ON DELETE CASCADE
+CREATE TABLE PROCCESS_EVENT (
+  CODE_PROCCESS_EVENT INTEGER PRIMARY KEY DEFAULT nextval('seq_event_proccess'),
+  CODE_STATUS INTEGER NOT NULL,
+  ERROR TEXT NOT NULL,
+  ATTEMPS INTEGER NOT NULL DEFAULT 0,
+  JSON JSONB NOT NULL,
+  FINISHED BOOLEAN NOT NULL DEFAULT false,
+  CREATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
+  UPDATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT FK_PROCCESS_EVENT_STATUS FOREIGN KEY (CODE_STATUS) REFERENCES PROCCESS_EVENT_STATUS (CODE_STATUS) ON DELETE CASCADE
 );
