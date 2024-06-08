@@ -2,10 +2,9 @@
 
 public record CertificateArgument
 {
-    public int Id { get; set; }
-    public string Student { get; set; }
-    public string Document { get; set; }
-    public string Registration { get; set; }
+    public string StudentName { get; set; }
+    public string StudentDocument { get; set; }
+    public string StudentRegistration { get; set; }
     public string Course { get; set; }
     public DateTime Completion { get; set; }
     public decimal Utilization { get; set; }

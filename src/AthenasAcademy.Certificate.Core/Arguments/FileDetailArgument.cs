@@ -2,7 +2,7 @@
 
 public record class FileDetailArgument
 {
-    public int Id { get; set; }
+    public int CodeCertificate { get; set; }
     public string File { get; set; }
     public string Type { get; set; }
     public string Path { get; set; }
