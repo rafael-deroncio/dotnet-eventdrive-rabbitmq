@@ -1,5 +1,5 @@
-﻿using AthenasAcademy.Certificate.API.Middlewares;
-using AthenasAcademy.Certificate.Core.Configurations.Settings;
+﻿using AthenasAcademy.Certificate.API.Configurations.Settings;
+using AthenasAcademy.Certificate.API.Middlewares;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
 
 namespace AthenasAcademy.Certificate.API.Extensions;

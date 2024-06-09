@@ -1,6 +1,6 @@
-﻿namespace AthenasAcademy.Certificate.Core.Options;
+﻿namespace AthenasAcademy.Certificate.Core.Configurations.Settings;
 
-public record RabbitMQOptions
+public record RabbitMQSettings
 {
     public string Host { get; set; }
     public int Port { get; set; }

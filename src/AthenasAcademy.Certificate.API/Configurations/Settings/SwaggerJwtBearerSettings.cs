@@ -1,4 +1,4 @@
-﻿namespace AthenasAcademy.Certificate.Core.Configurations.Settings;
+﻿namespace AthenasAcademy.Certificate.API.Configurations.Settings;
 
 public record SwaggerJwtBearerSettings
 {

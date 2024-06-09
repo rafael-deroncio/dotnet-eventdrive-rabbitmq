@@ -4,9 +4,6 @@ using Amazon.S3;
 using AthenasAcademy.Certificate.Core.Configurations.Mapper;
 using AthenasAcademy.Certificate.Core.Configurations.Mapper.Interfaces;
 using AthenasAcademy.Certificate.Core.Configurations.Settings;
-using AthenasAcademy.Certificate.Core.EventBus;
-using AthenasAcademy.Certificate.Core.EventBus.Interfaces;
-using AthenasAcademy.Certificate.Core.Options;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
 
@@ -61,11 +58,7 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddEventBusRabbitMQ(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<RabbitMQOptions>(configuration.GetSection("RabbitMQ"));
-
-        services.AddSingleton<IRabbitMQConnection, RabbitMQConnection>();
-        services.AddSingleton<IEventBus, EventBusRabbitMQ>();
-
+        
         return services;
     }
 }

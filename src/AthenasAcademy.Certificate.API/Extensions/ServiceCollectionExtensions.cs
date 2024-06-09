@@ -1,7 +1,7 @@
 ﻿
 using System.Reflection;
 using System.Text;
-using AthenasAcademy.Certificate.Core.Configurations.Settings;
+using AthenasAcademy.Certificate.API.Configurations.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.IdentityModel.Tokens;
