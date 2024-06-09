@@ -4,7 +4,12 @@ namespace AthenasAcademy.Certificate.Core.Extensions;
 
 public static class EnumExtensions
 {
-    public static string GetDescription(this Enum value)
+    public static string GetName(this Enum value)
+    {
+        return value.ToString();
+    }
+
+        public static string GetDescription(this Enum value)
     {
         System.Reflection.FieldInfo fieldInfo = value.GetType().GetField(value.ToString());
 

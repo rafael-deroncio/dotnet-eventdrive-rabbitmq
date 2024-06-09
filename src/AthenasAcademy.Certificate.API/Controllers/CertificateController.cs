@@ -1,4 +1,5 @@
-﻿using AthenasAcademy.Certificate.Domain.Requests;
+﻿using AthenasAcademy.Certificate.Core.Services.Interfaces;
+using AthenasAcademy.Certificate.Domain.Requests;
 using AthenasAcademy.Certificate.Domain.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,23 +10,25 @@ namespace AthenasAcademy.Certificate.API.Controllers;
 [ApiVersion("1.0")]
 [ApiController]
 [Authorize]
-public class CertificateController() : ControllerBase
+public class CertificateController(ICertificateService certificateService) : ControllerBase
 {
+    private readonly ICertificateService _certificateService = certificateService;
+
     [HttpGet("{register}/pdf")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CertificateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPdf(string register)
-        => Ok(await Task.FromResult(register));
+        => Ok(await _certificateService.Get(register, Domain.ContentType.PDF));
 
     [HttpGet("{register}/png")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CertificateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPng(string register)
-        => Ok(await Task.FromResult(register));
+        => Ok(await _certificateService.Get(register, Domain.ContentType.PNG));
 
     [HttpPost("generate")]
     [AllowAnonymous]
@@ -33,7 +36,5 @@ public class CertificateController() : ControllerBase
     [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Generate([FromBody] CertificateRequest request)
-         => Ok(await Task.FromResult(request));
-
-
+         => Ok(await _certificateService.Generate(request));
 }
