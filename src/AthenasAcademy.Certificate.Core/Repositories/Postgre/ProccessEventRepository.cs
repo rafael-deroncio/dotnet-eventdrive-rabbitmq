@@ -87,7 +87,7 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         }
     }
 
-    public async Task UpdateEventProccess(int proccess, EventProcessStatus status, string error = "")
+    public async Task<bool> UpdateEventProccess(int proccess, EventProcessStatus status, string error = "")
     {
         _logger.LogInformation("Start update event proccess.");
         try
@@ -103,7 +103,7 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
                                WHERE ID = @Proccess";
 
             using IDbConnection connection = GetConnection();
-            await connection.QueryFirstAsync<int>(query, new { status, proccess });
+            return await connection.ExecuteAsync(query, new { status, proccess }) > 0;
         }
         catch (Exception exception)
         {
