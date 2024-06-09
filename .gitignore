@@ -740,3 +740,4 @@ coverage*[.json, .xml, .info]
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,vs,visualstudiocode,visualstudio
+.vscode/launch.json
