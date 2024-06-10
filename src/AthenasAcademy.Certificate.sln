@@ -13,13 +13,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AthenasAcademy.Certificate.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AthenasAcademy.Certificate.Core", "AthenasAcademy.Certificate.Core\AthenasAcademy.Certificate.Core.csproj", "{8CB2FF7E-3936-486D-A02F-844DFE8897D5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AthenasAcademy.Components.EventBus", "AthenasAcademy.Components.EventBus\AthenasAcademy.Components.EventBus.csproj", "{364B0F8B-6B99-4AD4-A172-44F028E756C9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8CBD3767-9243-44F5-817B-198B4DA2E96E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -42,5 +41,12 @@ Global
 		{8CB2FF7E-3936-486D-A02F-844DFE8897D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8CB2FF7E-3936-486D-A02F-844DFE8897D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8CB2FF7E-3936-486D-A02F-844DFE8897D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{364B0F8B-6B99-4AD4-A172-44F028E756C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{364B0F8B-6B99-4AD4-A172-44F028E756C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{364B0F8B-6B99-4AD4-A172-44F028E756C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{364B0F8B-6B99-4AD4-A172-44F028E756C9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
