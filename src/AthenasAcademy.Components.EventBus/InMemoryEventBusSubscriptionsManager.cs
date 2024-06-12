@@ -36,26 +36,19 @@ public class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptionsManage
             GetEventKey<TEvent>(),
             FindSubscriptionToRemove<TEvent, TEventHandler>());
 
-    public IEnumerable<SubscriptionInfo> GetHandlersForEvent<TEvent>() where TEvent : BaseEvent
-        => GetHandlersForEvent(GetEventKey<TEvent>());
+    public IEnumerable<SubscriptionInfo> GetHandlersForEvent<TEvent>() where TEvent : BaseEvent => GetHandlersForEvent(GetEventKey<TEvent>());
 
-    public IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName)
-        => _handlers[eventName];
+    public IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName) => _handlers[eventName];
 
-    public bool HasSubscriptionsForEvent<TEvent>() where TEvent : BaseEvent
-        => HasSubscriptionsForEvent(GetEventKey<TEvent>());
+    public bool HasSubscriptionsForEvent<TEvent>() where TEvent : BaseEvent => HasSubscriptionsForEvent(GetEventKey<TEvent>());
 
-    public bool HasSubscriptionsForEvent(string eventName)
-        => _handlers.ContainsKey(eventName);
+    public bool HasSubscriptionsForEvent(string eventName) => _handlers.ContainsKey(eventName);
 
-    public Type GetEventTypeByName(string eventName)
-        => _eventTypes.SingleOrDefault(@event => @event.Name == eventName);
+    public Type GetEventTypeByName(string eventName) => _eventTypes.SingleOrDefault(@event => @event.Name == eventName);
 
-    public void Clear()
-        => _handlers.Clear();
+    public void Clear() => _handlers.Clear();
 
-    public string GetEventKey<T>()
-        => typeof(T).Name;
+    public string GetEventKey<T>() => typeof(T).Name;
 
     #region privates
     private void RaiseOnEventRemoved(string eventName)
@@ -73,9 +66,9 @@ public class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptionsManage
             {
                 _handlers.Remove(eventName);
 
-                var eventType = _eventTypes.SingleOrDefault(e => e.Name == eventName);
+                Type eventType = _eventTypes.SingleOrDefault(e => e.Name == eventName);
 
-                if (eventType != null) 
+                if (eventType != null)
                     _eventTypes.Remove(eventType);
 
                 RaiseOnEventRemoved(eventName);
@@ -86,19 +79,13 @@ public class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptionsManage
     private SubscriptionInfo FindSubscriptionToRemove<TEvent, TEventHandler>()
         where TEvent : BaseEvent
         where TEventHandler : IEventHandler<TEvent>
-    {
-        return DoFindSubscriptionToRemove(
-            GetEventKey<TEvent>(), 
-            typeof(TEventHandler));
-    }
+        => DoFindSubscriptionToRemove(
+            GetEventKey<TEvent>(),
+            typeof(TEventHandler)
+        );
 
-    private SubscriptionInfo DoFindSubscriptionToRemove(string eventName, Type handlerType)
-    {
-        if (!_handlers.ContainsKey(eventName))
-            return null;
-
-        return _handlers[eventName].SingleOrDefault(s => s.HandlerType == handlerType);
-    }
+    private SubscriptionInfo DoFindSubscriptionToRemove(string eventName, Type handlerType) 
+        => !_handlers.ContainsKey(eventName) ? null : _handlers[eventName].SingleOrDefault(s => s.HandlerType == handlerType);
 
     private void DoAddSubscription(Type handlerType, string eventName)
     {
@@ -113,5 +100,4 @@ public class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptionsManage
         _handlers[eventName].Add(SubscriptionInfo.Typed(handlerType));
     }
     #endregion
-
 }
