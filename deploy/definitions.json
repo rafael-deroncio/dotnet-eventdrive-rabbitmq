@@ -21,13 +21,5 @@
       "read": ".*"
     }
   ],
-  "queues": [
-    {
-      "name": "generate_certificate",
-      "vhost": "/",
-      "durable": true,
-      "auto_delete": false,
-      "arguments": {}
-    }
-  ]
+  "queues": []
 }
