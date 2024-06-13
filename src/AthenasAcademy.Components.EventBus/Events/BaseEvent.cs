@@ -10,19 +10,16 @@ public class BaseEvent : IDisposable
     /// <summary>
     /// Gets the unique identifier for the event.
     /// </summary>
-    [JsonIgnore]
     public Guid Id { get; private set; } = Guid.NewGuid();
 
     /// <summary>
     /// Gets the creation date of the event.
     /// </summary>
-    [JsonIgnore]
     public DateTime CreationDate { get; private set; } = DateTime.Now;
 
     /// <summary>
     /// Gets or sets the retry count for the event.
     /// </summary>
-    [JsonIgnore]
     public int RetryCount { get; set; } = 0;
 
     private bool _disposed;
