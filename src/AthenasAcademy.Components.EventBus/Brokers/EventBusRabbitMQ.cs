@@ -54,7 +54,7 @@ public class EventBusRabbitMQ(
         }
     }
 
-    public async Task SubscribeAsync<TEvent, TEventHandler>(CancellationToken cancellationToken)
+    public async Task SubscribeAsync<TEvent, TEventHandler>(CancellationToken cancellationToken, int maxCallbacks = 10)
         where TEvent : BaseEvent
         where TEventHandler : IEventHandler<TEvent>
     {
@@ -71,7 +71,6 @@ public class EventBusRabbitMQ(
         channel.ExchangeDeclare(exchange, RabbitMQConstants.EXCHANGE_TYPE);
         channel.QueueDeclare(queue, true, false, false, arguments);
         channel.QueueBind(queue, exchange, GetRoutingKeyName<TEvent>());
-        // channel.BasicQos(0, 10, false);
 
         AsyncEventingBasicConsumer consumer = new(channel);
 
@@ -80,7 +79,7 @@ public class EventBusRabbitMQ(
         if (!_subscriptionsManager.HasSubscriptionsForEvent<TEvent>())
             _subscriptionsManager.AddSubscription<TEvent, TEventHandler>();
 
-        consumer.Received += async (sender, args) => await OnConsumerReceived<TEvent>(sender, args, channel, queue);
+        consumer.Received += async (sender, args) => await OnConsumerReceived<TEvent>(sender, args, channel, queue, maxCallbacks);
 
         try
         {
@@ -128,9 +127,9 @@ public class EventBusRabbitMQ(
     public void Publish<TEvent>(TEvent @event) where TEvent : BaseEvent
         => PublishAsync(@event).Wait();
 
-    public void Subscribe<TEvent, TEventHandler>(CancellationToken cancellation)
+    public void Subscribe<TEvent, TEventHandler>(CancellationToken cancellation, int maxCallbacks = 10)
     where TEvent : BaseEvent where TEventHandler : IEventHandler<TEvent>
-        => SubscribeAsync<TEvent, TEventHandler>(cancellation).Wait(cancellation);
+        => SubscribeAsync<TEvent, TEventHandler>(cancellation, maxCallbacks).Wait(cancellation);
 
     public void Unsubscribe<TEvent, TEventHandler>()
     where TEvent : BaseEvent where TEventHandler : IEventHandler<TEvent>
@@ -152,7 +151,7 @@ public class EventBusRabbitMQ(
         return new() { { RabbitMQConstants.X_DLQ_EXCHANGE, exchangeDql } };
     }
 
-    private async Task OnConsumerReceived<TEvent>(object sender, BasicDeliverEventArgs args, IModel channel, string queue) where TEvent : BaseEvent
+    private async Task OnConsumerReceived<TEvent>(object sender, BasicDeliverEventArgs args, IModel channel, string queue, int maxCallbacks) where TEvent : BaseEvent
     {
         string message = Encoding.UTF8.GetString(args.Body.ToArray());
         TEvent @event = DeserializeEvent<TEvent>(message);
@@ -170,7 +169,7 @@ public class EventBusRabbitMQ(
         {
             @event.RetryCount++;
 
-            if (@event.RetryCount <= 10)
+            if (@event.RetryCount <= maxCallbacks)
             {
                 _logger.LogError(ex, "Error processing message in queue {0}. Retrying message.", queue);
                 await PublishAsync<TEvent>(@event);

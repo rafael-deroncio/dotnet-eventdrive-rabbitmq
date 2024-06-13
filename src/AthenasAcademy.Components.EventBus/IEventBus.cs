@@ -22,11 +22,13 @@ public interface IEventBus
     /// </summary>
     /// <typeparam name="TEvent">The type of the event.</typeparam>
     /// <typeparam name="TEventHandler">The type of the handler that will process the event.</typeparam>
-    /// <param name="cancellation">A cancellation token to observe while waiting for the task to complete.</param>
+    /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+    /// <param name="maxCallbacks">The maximum number of callbacks to be invoked. Defaults to 10.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task SubscribeAsync<TEvent, TEventHandler>(CancellationToken cancellation)
+    Task SubscribeAsync<TEvent, TEventHandler>(CancellationToken cancellationToken, int maxCallbacks = 10)
         where TEvent : BaseEvent
         where TEventHandler : IEventHandler<TEvent>;
+
 
     /// <summary>
     /// Asynchronously unsubscribes from a specific event.
@@ -51,10 +53,12 @@ public interface IEventBus
     /// </summary>
     /// <typeparam name="TEvent">The type of the event.</typeparam>
     /// <typeparam name="TEventHandler">The type of the handler that will process the event.</typeparam>
-    /// <param name="cancellation">A cancellation token to observe while waiting for the task to complete.</param>
-    void Subscribe<TEvent, TEventHandler>(CancellationToken cancellation)
+    /// <param name="cancellationToken">A cancellation token to observe while the subscription is active.</param>
+    /// <param name="maxCallbacks">The maximum number of callbacks to be invoked. Defaults to 10.</param>
+    void Subscribe<TEvent, TEventHandler>(CancellationToken cancellationToken, int maxCallbacks = 10)
         where TEvent : BaseEvent
         where TEventHandler : IEventHandler<TEvent>;
+
 
     /// <summary>
     /// Unsubscribes from a specific event.
