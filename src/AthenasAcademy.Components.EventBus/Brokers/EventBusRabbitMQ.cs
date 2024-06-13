@@ -1,12 +1,13 @@
 ﻿using System.Text;
 using System.Text.Json;
-using AthenasAcademy.Components.EventBus.Brokers.Interfaces;
-using AthenasAcademy.Components.EventBus.Events;
-using AthenasAcademy.Components.EventBus.Handlers.Interfaces;
 using Autofac;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using AthenasAcademy.Components.EventBus.Brokers.Interfaces;
+using AthenasAcademy.Components.EventBus.Events;
+using AthenasAcademy.Components.EventBus.Handlers.Interfaces;
+using AthenasAcademy.Components.EventBus.Brokers.Constants;
 
 namespace AthenasAcademy.Components.EventBus.Brokers;
 
@@ -24,46 +25,34 @@ public class EventBusRabbitMQ(
     private readonly ILifetimeScope _lifetime = lifetime;
     private readonly string _exchangeBaseName = exchangeBaseName;
 
-    private const string AUTOFAC_SCOPE_NAME = "event_bus_rabbitmq";
-    private const string SUFIX_EVENT = "Event";
-    private const string SUFIX_EVENT_HANDLER = "EventHandler";
-    private const string EXCHANGE_TYPE = ExchangeType.Direct;
-    private const string PREFIX_EXCHANGE = "exchange";
-    private const string PREFIX_QUEUE = "queue";
-    private const string PREFIX_ROUTING_KEY = "key_event";
-    private const string PREFIX_DLQ_EXCHANGE = "dql_exchange";
-    private const string PREFIX_DLQ_QUEUE = "dql_queue";
-
     public async Task PublishAsync<TEvent>(TEvent @event) where TEvent : BaseEvent
     {
         if (!_persistentConnection.IsConnected)
             _persistentConnection.TryConnect();
 
-        string exchange = GetExchangeName();
-        string type = EXCHANGE_TYPE;
-        string queue = GetQueueName<TEvent>();
-        string routingKey = GetRoutingKeyName<TEvent>();
-
         using (var channel = _persistentConnection.CreateModel())
         {
+            string exchange = GetExchangeName();
+            string type = RabbitMQConstants.EXCHANGE_TYPE;
+            string queue = GetQueueName<TEvent>();
+            string routingKey = GetRoutingKeyName<TEvent>();
+
+            Dictionary<string, object> arguments = await DeclareDeadLetterQueue<TEvent>(channel);
+
             channel.ExchangeDeclare(exchange, type);
-            channel.QueueDeclare(queue, true, false, false, null);
+            channel.QueueDeclare(queue, true, false, false, arguments);
             channel.QueueBind(queue, exchange, routingKey);
 
             IBasicProperties properties = channel.CreateBasicProperties();
             properties.Persistent = true;
 
             _logger.LogInformation("Starting publishing the message to queue {0}.", queue);
-
-            await Task.Run(() =>
-                channel.BasicPublish(exchange, routingKey, properties, SerializeEvent(@event))
-            );
-
+            channel.BasicPublish(exchange, routingKey, properties, SerializeEvent(@event));
             _logger.LogInformation("Finishing publishing the message to queue {0}.", queue);
+
+            await Task.CompletedTask;
         }
     }
-
-    public void Publish<TEvent>(TEvent @event) where TEvent : BaseEvent => PublishAsync(@event).Wait();
 
     public async Task SubscribeAsync<TEvent, TEventHandler>(CancellationToken cancellationToken)
         where TEvent : BaseEvent
@@ -74,19 +63,15 @@ public class EventBusRabbitMQ(
 
         IModel channel = _persistentConnection.CreateModel();
 
-        await DeclareDeadLetterQueue<TEvent>(channel);
-
-        string queue = GetQueueName<TEvent>();
         string exchange = GetExchangeName();
-        string routingKey = GetRoutingKeyName<TEvent>();
+        string queue = GetQueueName<TEvent>();
 
-        uint prefetchSize = 0;
-        ushort prefetchCount = 10;
-        bool global = false;
+        Dictionary<string, object> arguments = await DeclareDeadLetterQueue<TEvent>(channel);
 
-        channel.QueueDeclare(queue, true, false, false, null);
-        channel.QueueBind(queue, exchange, routingKey);
-        channel.BasicQos(prefetchSize, prefetchCount, global);
+        channel.ExchangeDeclare(exchange, RabbitMQConstants.EXCHANGE_TYPE);
+        channel.QueueDeclare(queue, true, false, false, arguments);
+        channel.QueueBind(queue, exchange, GetRoutingKeyName<TEvent>());
+        // channel.BasicQos(0, 10, false);
 
         AsyncEventingBasicConsumer consumer = new(channel);
 
@@ -108,12 +93,7 @@ public class EventBusRabbitMQ(
         }
     }
 
-    public void Subscribe<TEvent, TEventHandler>(CancellationToken cancellation)
-        where TEvent : BaseEvent
-        where TEventHandler : IEventHandler<TEvent>
-        => SubscribeAsync<TEvent, TEventHandler>(cancellation).Wait(cancellation);
-
-    public Task UnsubscribeAsync<TEvent, TEventHandler>()
+    public async Task UnsubscribeAsync<TEvent, TEventHandler>()
         where TEvent : BaseEvent
         where TEventHandler : IEventHandler<TEvent>
     {
@@ -125,50 +105,54 @@ public class EventBusRabbitMQ(
         if (!_persistentConnection.IsConnected)
             _persistentConnection.TryConnect();
 
-        using (RabbitMQ.Client.IModel channel = _persistentConnection.CreateModel())
+        using (IModel channel = _persistentConnection.CreateModel())
         {
             _logger.LogInformation("Starting consumer unsubscription to queue {0}.", queue);
+
             _subscriptionsManager.RemoveSubscription<TEvent, TEventHandler>();
             channel.QueueDelete(queue: queue);
-            _logger.LogInformation("Finishing unsubscribing from consumer in queue {0} for EventHandler {1}.", queue, handler);
 
+            _logger.LogInformation("Finishing unsubscribing from consumer in queue {0} for EventHandler {1}.", queue, handler);
         }
 
-        return Task.CompletedTask;
+        await Task.CompletedTask;
     }
+
+    public void Dispose()
+    {
+        _subscriptionsManager.Clear();
+        _persistentConnection.Dispose();
+    }
+
+    #region syncs
+    public void Publish<TEvent>(TEvent @event) where TEvent : BaseEvent
+        => PublishAsync(@event).Wait();
+
+    public void Subscribe<TEvent, TEventHandler>(CancellationToken cancellation)
+    where TEvent : BaseEvent where TEventHandler : IEventHandler<TEvent>
+        => SubscribeAsync<TEvent, TEventHandler>(cancellation).Wait(cancellation);
 
     public void Unsubscribe<TEvent, TEventHandler>()
-        where TEvent : BaseEvent
-        where TEventHandler : IEventHandler<TEvent>
-    {
-        UnsubscribeAsync<TEvent, TEventHandler>();
-    }
+    where TEvent : BaseEvent where TEventHandler : IEventHandler<TEvent>
+        => UnsubscribeAsync<TEvent, TEventHandler>().Wait();
 
-    public void Dispose() => _subscriptionsManager.Clear();
+    #endregion
 
     #region privates
     private async Task<Dictionary<string, object>> DeclareDeadLetterQueue<TEvent>(IModel channel)
     {
-        if (!_persistentConnection.IsConnected)
-            _persistentConnection.TryConnect();
+        string exchangeDql = GetDQLExchangeName();
+        string queueDql = GetDQLQueueName<TEvent>();
 
-        string exchange = GetDQLExchangeName();
-        string type = EXCHANGE_TYPE;
-        string queue = GetDQLQueueName<TEvent>();
-        string routingKey = string.Empty;
+        channel.ExchangeDeclare(exchangeDql, RabbitMQConstants.EXCHANGE_TYPE);
+        channel.QueueDeclare(queueDql, true, false, false, null);
+        channel.QueueBind(queueDql, exchangeDql, string.Empty);
 
-        channel.ExchangeDeclare(exchange, type);
-        channel.QueueDeclare(queue, durable: true, exclusive: false, autoDelete: false, arguments: null);
-        channel.QueueBind(queue, exchange, routingKey);
-
-        return await Task.FromResult(
-            new Dictionary<string, object>
-            {
-                { "x-dead-letter-exchange", exchange }
-            }
-        );
+        await Task.CompletedTask;
+        return new() { { RabbitMQConstants.X_DLQ_EXCHANGE, exchangeDql } };
     }
-    private async Task OnConsumerReceived<TEvent>(object sender, BasicDeliverEventArgs args, IModel channel, string queue)
+
+    private async Task OnConsumerReceived<TEvent>(object sender, BasicDeliverEventArgs args, IModel channel, string queue) where TEvent : BaseEvent
     {
         string message = Encoding.UTF8.GetString(args.Body.ToArray());
         TEvent @event = DeserializeEvent<TEvent>(message);
@@ -178,22 +162,40 @@ public class EventBusRabbitMQ(
             _logger.LogInformation("Starting consumption of the {0} queue.", queue);
 
             await ProccessEvent(@event);
-            channel.BasicAck(args.DeliveryTag, false); // commit
+            channel.BasicAck(args.DeliveryTag, false);
 
-            _logger.LogInformation("Finishing consumption of queue {0} for message {1}.", queue, (@event as BaseEvent).Id);
+            _logger.LogInformation("Finishing consumption of queue {0} for message {1}.", queue, @event.Id);
         }
         catch (Exception ex)
         {
-            if ((@event as BaseEvent).RetryCount == 10)
+            @event.RetryCount++;
+
+            if (@event.RetryCount <= 10)
             {
-                
+                _logger.LogError(ex, "Error processing message in queue {0}. Retrying message.", queue);
+                await PublishAsync<TEvent>(@event);
             }
             else
             {
-                _logger.LogError(ex, "Error processing message in queue {0}.", queue);
-                channel.BasicNack(args.DeliveryTag, false, true); // rollback
+                _logger.LogWarning("Max retry count reached, sending to dead letter queue.");
+                await SendToDeadLetterQueue(channel, @event, args.BasicProperties);
             }
+
+            channel.BasicNack(args.DeliveryTag, multiple: false, false);
         }
+    }
+
+    private async Task SendToDeadLetterQueue<TEvent>(IModel channel, TEvent @event, IBasicProperties properties) where TEvent : BaseEvent
+    {
+        string exchangeDql = GetDQLExchangeName();
+        string queueDql = GetDQLQueueName<TEvent>();
+
+        channel.ExchangeDeclare(exchangeDql, RabbitMQConstants.EXCHANGE_TYPE);
+        channel.QueueDeclare(queueDql, durable: true, exclusive: false, autoDelete: false, arguments: null);
+        channel.QueueBind(queueDql, exchangeDql, string.Empty);
+        channel.BasicPublish(exchangeDql, string.Empty, properties, SerializeEvent(@event));
+
+        await Task.CompletedTask;
     }
 
     private async Task ProccessEvent<TEvent>(TEvent @event)
@@ -202,7 +204,7 @@ public class EventBusRabbitMQ(
 
         if (_subscriptionsManager.HasSubscriptionsForEvent(eventName))
         {
-            using (ILifetimeScope scope = _lifetime.BeginLifetimeScope(AUTOFAC_SCOPE_NAME))
+            using (ILifetimeScope scope = _lifetime.BeginLifetimeScope(RabbitMQConstants.AUTOFAC_SCOPE_NAME))
             {
                 IEnumerable<SubscriptionInfo> subscriptions = _subscriptionsManager.GetHandlersForEvent(eventName);
 
@@ -222,22 +224,31 @@ public class EventBusRabbitMQ(
         }
     }
 
-    private static byte[] SerializeEvent<TEvent>(TEvent @event) => Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event));
+    private static byte[] SerializeEvent<TEvent>(TEvent @event)
+        => Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event));
 
-    private static TEvent DeserializeEvent<TEvent>(string body) => JsonSerializer.Deserialize<TEvent>(body);
+    private static TEvent DeserializeEvent<TEvent>(string body)
+        => JsonSerializer.Deserialize<TEvent>(body);
 
-    private static string GetQueueName<TEvent>() => string.Format("{0}_{1}", PREFIX_QUEUE, typeof(TEvent).Name.Replace(SUFIX_EVENT, "").Replace(SUFIX_EVENT_HANDLER, "").ToLower());
+    private static string GetQueueName<TEvent>()
+        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_QUEUE, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").Replace(RabbitMQConstants.SUFIX_EVENT_HANDLER, "").ToLower());
 
-    private string GetExchangeName() => string.Format("{0}_{1}", PREFIX_EXCHANGE, _exchangeBaseName.Trim().Replace(SUFIX_EVENT, "").Replace(SUFIX_EVENT_HANDLER, "").ToLower());
+    private string GetExchangeName()
+        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_EXCHANGE, _exchangeBaseName.Trim().Replace(RabbitMQConstants.SUFIX_EVENT, "").Replace(RabbitMQConstants.SUFIX_EVENT_HANDLER, "").ToLower());
 
-    private static string GetDQLQueueName<TEvent>() => string.Format("{0}_{1}", PREFIX_DLQ_QUEUE, typeof(TEvent).Name.Replace(SUFIX_EVENT, "").Replace(SUFIX_EVENT_HANDLER, "").ToLower());
+    private static string GetDQLQueueName<TEvent>()
+        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_DLQ_QUEUE, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").Replace(RabbitMQConstants.SUFIX_EVENT_HANDLER, "").ToLower());
 
-    private string GetDQLExchangeName() => string.Format("{0}_{1}", PREFIX_DLQ_EXCHANGE, _exchangeBaseName.Trim().Replace(SUFIX_EVENT, "").Replace(SUFIX_EVENT_HANDLER, "").ToLower());
+    private string GetDQLExchangeName()
+        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_DLQ_EXCHANGE, _exchangeBaseName.Trim().Replace(RabbitMQConstants.SUFIX_EVENT, "").Replace(RabbitMQConstants.SUFIX_EVENT_HANDLER, "").ToLower());
 
-    private static string GetRoutingKeyName<TEvent>() => string.Format("{0}_{1}", PREFIX_ROUTING_KEY, typeof(TEvent).Name.Replace(SUFIX_EVENT, "").Replace(SUFIX_EVENT_HANDLER, "").ToLower());
+    private static string GetRoutingKeyName<TEvent>()
+        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_ROUTING_KEY, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").Replace(RabbitMQConstants.SUFIX_EVENT_HANDLER, "").ToLower());
 
-    private static string GetEventName<TEvent>() => typeof(TEvent).Name;
+    private static string GetEventName<TEvent>()
+        => typeof(TEvent).Name;
 
-    private static string GetEventHandlerName<TEventHandler>() => typeof(TEventHandler).Name;
+    private static string GetEventHandlerName<TEventHandler>()
+        => typeof(TEventHandler).Name;
     #endregion
 }
