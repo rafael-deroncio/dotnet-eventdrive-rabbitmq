@@ -1,7 +1,4 @@
-﻿using AthenasAcademy.Components.EventBus.Events;
-using AthenasAcademy.Components.EventBus.Handlers.Interfaces;
-
-namespace AthenasAcademy.Components.EventBus;
+﻿namespace AthenasAcademy.Components.EventBus;
 
 public class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptionsManager
 {
