@@ -39,6 +39,7 @@ public class GlobalHandlerExceptionMiddleware
         }
         catch (Exception)
         {
+            
             ExceptionResponse response = new()
             {
                 Title = "Internal Error",

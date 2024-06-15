@@ -1,8 +1,11 @@
 using AthenasAcademy.Certificate.API.Extensions;
 using AthenasAcademy.Certificate.Core.Extensions;
+using Autofac.Extensions.DependencyInjection;
 using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
 // Add Serilog Configuration
 builder.Host.UseSerilog();
@@ -71,8 +74,8 @@ app.UseHsts();
 
 app.UseHttpsRedirection();
 
-app.MapControllers();
+app.UseBucketS3(start: true);
 
-app.InitializeBucketS3();
+app.MapControllers();
 
 app.Run();
