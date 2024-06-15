@@ -44,16 +44,4 @@ public static class ApplicationBuilderExtensions
         builder.UseMiddleware<GlobalHandlerExceptionMiddleware>();
         return builder;
     }
-
-    public static IApplicationBuilder InitializeBucketS3(this IApplicationBuilder builder)
-    {
-        IBucketRepository s3 = builder.ApplicationServices.GetRequiredService<IBucketRepository>();
-
-        if (s3 != null)
-            s3.InitializeBucketAsync().Wait();
-        else
-            throw new Exception("IBucketRepository service is not registered in the DI container.");
-        
-        return builder;
-    }
 }
