@@ -9,7 +9,6 @@ public class ObjectConverter : IObjectConverter
 
     public ObjectConverter()
     {
-        
     }
 
     public T Map<T>(object source)
