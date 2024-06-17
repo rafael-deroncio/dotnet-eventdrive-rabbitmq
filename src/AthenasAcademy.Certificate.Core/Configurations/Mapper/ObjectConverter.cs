@@ -1,4 +1,5 @@
 ﻿using AthenasAcademy.Certificate.Core.Configurations.Mapper.Interfaces;
+using AthenasAcademy.Certificate.Core.Configurations.Mapper.Profiles;
 using AutoMapper;
 
 namespace AthenasAcademy.Certificate.Core.Configurations.Mapper;
@@ -9,6 +10,11 @@ public class ObjectConverter : IObjectConverter
 
     public ObjectConverter()
     {
+        _mapper = new MapperConfiguration(
+            config =>
+                {
+                    config.AddProfile(new EventToRequestProfile());
+                }).CreateMapper();
     }
 
     public T Map<T>(object source)
