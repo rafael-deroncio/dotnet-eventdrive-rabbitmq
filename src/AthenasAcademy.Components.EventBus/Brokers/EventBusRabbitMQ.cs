@@ -13,53 +13,37 @@ public class EventBusRabbitMQ(
     ILogger<EventBusRabbitMQ> logger,
     IRabbitMQPersistentConnection persistentConnection,
     IEventBusSubscriptionsManager subscriptionsManager,
-    ILifetimeScope lifetime)
+    ILifetimeScope lifetime,
+    string exchange)
 : IEventBus, IDisposable
 {
     private readonly ILogger<EventBusRabbitMQ> _logger = logger;
     private readonly IRabbitMQPersistentConnection _persistentConnection = persistentConnection;
     private readonly IEventBusSubscriptionsManager _subscriptionsManager = subscriptionsManager;
     private readonly ILifetimeScope _lifetime = lifetime;
+    private readonly string _exchange = exchange.Trim().ToLower();
 
     public async Task PublishAsync<TEvent>(TEvent @event) where TEvent : BaseEvent
     {
-        try
+        if (!_persistentConnection.IsConnected)
+            _persistentConnection.TryConnect();
+
+        using (var channel = _persistentConnection.CreateModel())
         {
-            if (!_persistentConnection.IsConnected)
-                _persistentConnection.TryConnect();
+            string exchange = GetExchangeName<TEvent>();
+            string queue = GetQueueName<TEvent>();
+            string routingKey = GetRoutingKeyName<TEvent>();
 
-            using (var channel = _persistentConnection.CreateModel())
-            {
-                string exchange = GetExchangeName<TEvent>();
-                string type = RabbitMQConstants.EXCHANGE_TYPE;
-                string queue = GetQueueName<TEvent>();
-                string routingKey = GetRoutingKeyName<TEvent>();
+            Dictionary<string, object> arguments = await DeclareDeadLetterQueue<TEvent>(channel);
 
-                Dictionary<string, object> arguments = await DeclareDeadLetterQueue<TEvent>(channel);
+            channel.ExchangeDeclare(exchange, RabbitMQConstants.EXCHANGE_TYPE);
+            channel.QueueDeclare(queue, true, false, false, arguments);
+            channel.QueueBind(queue, exchange, routingKey);
 
-                channel.ExchangeDeclare(exchange, type);
-                channel.QueueDeclare(queue, true, false, false, arguments);
-                channel.QueueBind(queue, exchange, routingKey);
+            IBasicProperties properties = channel.CreateBasicProperties();
+            properties.Persistent = true;
 
-                IBasicProperties properties = channel.CreateBasicProperties();
-                properties.Persistent = true;
-
-                if (@event.RetryCount > 0)
-                    _logger.LogInformation("Starting publishing the message to queue {0}.", queue);
-
-                channel.BasicPublish(exchange, routingKey, properties, SerializeEvent(@event));
-
-                if (@event.RetryCount > 0)
-                    _logger.LogInformation("Finishing publishing the message to queue {0}.", queue);
-
-                await Task.CompletedTask;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error on publish message.");
-            _persistentConnection.Dispose();
-            throw;
+            channel.BasicPublish(exchange, routingKey, properties, SerializeEvent(@event));
         }
     }
 
@@ -89,7 +73,6 @@ public class EventBusRabbitMQ(
                 _subscriptionsManager.AddSubscription<TEvent, TEventHandler>();
 
             consumer.Received += async (sender, args) => await OnConsumerReceived<TEvent>(sender, args, channel, queue, maxCallbacks);
-
 
             try
             {
@@ -122,7 +105,7 @@ public class EventBusRabbitMQ(
             _subscriptionsManager.RemoveSubscription<TEvent, TEventHandler>();
             channel.QueueDelete(queue: queue);
 
-            _logger.LogInformation("Finishing unsubscribing from consumer in queue {0} for EventHandler {1}.", queue, handler);
+            _logger.LogInformation("Finishing unsubscribing from consumer in queue {Queue} for EventHandler {Handler}.", queue, handler);
         }
 
         await Task.CompletedTask;
@@ -169,29 +152,23 @@ public class EventBusRabbitMQ(
 
         try
         {
-            _logger.LogInformation("Starting consumption of the {0} queue.", queue);
+            _logger.LogInformation("Starting consumption of the {0} for message {1}.", queue, @event.Id);
 
-            await ProccessEvent(@event);
+            await ProccessEvent(@event).WaitAsync(CancellationToken.None);
             channel.BasicAck(args.DeliveryTag, false);
-
-            _logger.LogInformation("Finishing consumption of queue {0} for message {1}.", queue, @event.Id);
         }
         catch (Exception ex)
         {
-            @event.RetryCount++;
+            _logger.LogError(ex, "Error processing message in queue {Queue}. Attemp {Attemp}", queue, ++@event.RetryCount);
 
-            if (@event.RetryCount <= maxCallbacks)
-            {
-                _logger.LogError(ex, "Error processing message in queue {0}. Retrying message.", queue);
-                await PublishAsync<TEvent>(@event);
-            }
-            else
-            {
-                _logger.LogWarning("Max retry count reached, sending to dead letter queue.");
-                await SendToDeadLetterQueue(channel, @event, args.BasicProperties);
-            }
+            if (@event.RetryCount < maxCallbacks) await PublishAsync<TEvent>(@event);
+            else await SendToDeadLetterQueue(channel, @event, args.BasicProperties);
 
             channel.BasicNack(args.DeliveryTag, multiple: false, false);
+        }
+        finally
+        {
+            _logger.LogInformation("Finishing consumption of queue {0} for message {1}.", queue, @event.Id);
         }
     }
 
@@ -205,6 +182,7 @@ public class EventBusRabbitMQ(
         channel.QueueBind(queueDql, exchangeDql, string.Empty);
         channel.BasicPublish(exchangeDql, string.Empty, properties, SerializeEvent(@event));
 
+        _logger.LogInformation("Message {0} send to dead latter queue.", @event.Id);
         await Task.CompletedTask;
     }
 
@@ -241,19 +219,19 @@ public class EventBusRabbitMQ(
         => JsonSerializer.Deserialize<TEvent>(body);
 
     private static string GetQueueName<TEvent>()
-        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_QUEUE, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").Replace(RabbitMQConstants.SUFIX_EVENT_HANDLER, "").ToLower());
+        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_QUEUE, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").ToLower());
 
     private string GetExchangeName<TEvent>()
-        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_EXCHANGE, typeof(TEvent).Name.Trim().Replace(RabbitMQConstants.SUFIX_EVENT, "").Replace(RabbitMQConstants.SUFIX_EVENT_HANDLER, "").ToLower());
+        => string.Format("{0}_{1}_{2}", RabbitMQConstants.PREFIX_EXCHANGE, _exchange, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").ToLower());
 
     private static string GetDQLQueueName<TEvent>()
-        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_DLQ_QUEUE, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").Replace(RabbitMQConstants.SUFIX_EVENT_HANDLER, "").ToLower());
+        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_DLQ_QUEUE, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").ToLower());
 
     private string GetDQLExchangeName<TEvent>()
-        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_DLQ_EXCHANGE, typeof(TEvent).Name.Trim().Replace(RabbitMQConstants.SUFIX_EVENT, "").Replace(RabbitMQConstants.SUFIX_EVENT_HANDLER, "").ToLower());
+        => string.Format("{0}_{1}_{2}", RabbitMQConstants.PREFIX_DLQ_EXCHANGE, _exchange, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").ToLower());
 
     private static string GetRoutingKeyName<TEvent>()
-        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_ROUTING_KEY, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").Replace(RabbitMQConstants.SUFIX_EVENT_HANDLER, "").ToLower());
+        => string.Format("{0}_{1}", RabbitMQConstants.PREFIX_ROUTING_KEY, typeof(TEvent).Name.Replace(RabbitMQConstants.SUFIX_EVENT, "").ToLower());
 
     private static string GetEventName<TEvent>()
         => typeof(TEvent).Name;
