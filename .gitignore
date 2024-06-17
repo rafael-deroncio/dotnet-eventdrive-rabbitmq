@@ -743,3 +743,4 @@ coverage*[.json, .xml, .info]
 .vscode/launch.json
 src/AthenasAcademy.Certificate.Handling/secrets.yaml
 .vscode/tasks.json
+.vscode/settings.json
