@@ -12,4 +12,7 @@ public enum ResponseType
 
     [Description("Fatal")]
     Fatal,
+
+    [Description("Information")]
+    Information,
 }
