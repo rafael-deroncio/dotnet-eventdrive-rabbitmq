@@ -9,16 +9,25 @@ public class ModelToResponseProfile : Profile
     public ModelToResponseProfile()
     {
         CreateMap<CertificateModel, CertificateResponse>()
-        .ForMember(dest => dest.Details.Studant, 
+        .ForMember(dest => dest.Studant, 
             opts => opts.MapFrom(src => src.StudentName))
-        .ForMember(dest => dest.Details.Course, 
+        .ForMember(dest => dest.Course, 
             opts => opts.MapFrom(src => src.Course))
-        .ForMember(dest => dest.Details.Workload, 
+        .ForMember(dest => dest.Workload, 
             opts => opts.MapFrom(src => src.Workload))
-        .ForMember(dest => dest.Details.Utilization, 
+        .ForMember(dest => dest.Utilization, 
             opts => opts.MapFrom(src => src.Utilization))
-        .ForMember(dest => dest.Details.Completion, 
-            opts => opts.MapFrom(src => src.Completion))        
+        .ForMember(dest => dest.Completion, 
+            opts => opts.MapFrom(src => src.Completion))
+        .ReverseMap();
+
+        CreateMap<FileDetailModel, FileResponse>()
+        .ForMember(dest => dest.Name, 
+            opts => opts.MapFrom(src => Path.GetFileName(src.File)))
+        .ForMember(dest => dest.Size, 
+            opts => opts.MapFrom(src => src.Size))
+        .ForMember(dest => dest.Type, 
+            opts => opts.MapFrom(src => src.Type))
         .ReverseMap();
     }
 }
