@@ -1,6 +1,7 @@
 ﻿using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
+using AthenasAcademy.Certificate.Core.Configurations;
 using AthenasAcademy.Certificate.Core.Configurations.Mapper;
 using AthenasAcademy.Certificate.Core.Configurations.Mapper.Interfaces;
 using AthenasAcademy.Certificate.Core.Configurations.Settings;
@@ -19,15 +20,30 @@ namespace AthenasAcademy.Certificate.Core.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    public static IServiceCollection ConfigureSecrets(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<PostgreSettings>(configuration.GetSection("Postgre"));
+        services.Configure<AWSSettings>(configuration.GetSection("AWS"));
+        services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
+        return services;
+    }
+
+    public static IServiceCollection ConfigureParameters(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<Parameters>(configuration.GetSection("Parameters"));
+        return services;
+    }
+
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
-        services.AddSingleton<ICertificateService, CertificateService>();
+        services.AddScoped<ICertificateService, CertificateService>();
         return services;
     }
 
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddSingleton<ICertificateRepository, CertificateRepository>();
+        services.AddSingleton<IProccessEventRepository, ProccessEventRepository>();
         return services;
     }
 
@@ -102,7 +118,8 @@ public static class ServiceCollectionExtensions
                 provider.GetRequiredService<ILogger<EventBusRabbitMQ>>(),
                 provider.GetRequiredService<IRabbitMQPersistentConnection>(),
                 provider.GetRequiredService<IEventBusSubscriptionsManager>(),
-                provider.GetRequiredService<ILifetimeScope>()
+                provider.GetRequiredService<ILifetimeScope>(),
+                settings.Setup.ExchangeBaseName
             );
         });
 
