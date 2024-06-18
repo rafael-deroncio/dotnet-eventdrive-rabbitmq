@@ -23,9 +23,9 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         _logger.LogInformation("Start check event in proccess.");
         try
         {
-            string query = @"SELECT EVP.STATUS 
-                              FROM EVENT_PROCCESS
-                             WHERE EVP.ID = @Proccess";
+            string query = @"SELECT EVP.CODE_STATUS 
+                               FROM PROCCESS_EVENT EVP
+                              WHERE EVP.CODE_PROCCESS_EVENT = @Proccess";
 
             using IDbConnection connection = GetConnection();
             return await connection.QueryFirstAsync<int>(query, new { proccess }) == (int)EventProcessStatus.OnProccess;
@@ -47,11 +47,11 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         try
         {
             string query = @"SELECT EVP.ATTEMPS 
-                              FROM EVENT_PROCCESS EVP 
-                             WHERE EVP.ID = @Proccess";
+                               FROM PROCCESS_EVENT EVP 
+                              WHERE EVP.CODE_PROCCESS_EVENT = @Proccess";
 
             using IDbConnection connection = GetConnection();
-            return await connection.QueryFirstAsync<int>(query, new { proccess }) >= maxAttempts;
+            return await connection.QueryFirstAsync<int>(query, new { proccess }) == maxAttempts;
         }
         catch (Exception exception)
         {
@@ -69,12 +69,12 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         _logger.LogInformation("Start save event proccess.");
         try
         {
-            string query = @"INSERT INTO EVENT_PROCCESS (STATUS, JSON_EVENT, ACTIVE)
-                             VALUES (@Status, @Json, true)
-                             RETURNING ID;";
+            string query = @"INSERT INTO PROCCESS_EVENT (CODE_STATUS, JSON)
+                             VALUES (@Status, @Json)
+                             RETURNING CODE_PROCCESS_EVENT;";
 
             using IDbConnection connection = GetConnection();
-            return await connection.QueryFirstAsync<int>(query, new { status, json });
+            return await connection.QueryFirstAsync<int>(query, new { Status = (int)status, Json = json });
         }
         catch (Exception exception)
         {
@@ -87,23 +87,21 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         }
     }
 
-    public async Task<bool> UpdateEventProccess(int proccess, EventProcessStatus status, string error = "")
+    public async Task<bool> UpdateEventProccess(int proccess, EventProcessStatus status, string error = "", bool finish = false)
     {
         _logger.LogInformation("Start update event proccess.");
         try
         {
-            bool containsError = !string.IsNullOrEmpty(error);
-            string addTry = containsError ? "(SELECT ATTEMPS + 1 FROM EVENT_PROCCESS WHERE @Proccess)" : "";
-
-            string query = @$"UPDATE EVENT_PROCCESS
-                                 SET STATUS = @Status,
-                                     {(containsError ? "ERROR = @Error," : "")}
-                                     {(!string.IsNullOrEmpty(addTry) ? $"ATTEMPS = {addTry}," : "")}
-                                     UPDATED = NOW() 
-                               WHERE ID = @Proccess";
+            string query = @$"UPDATE PROCCESS_EVENT
+                                 SET CODE_STATUS = @Status,
+                                     ERROR = CASE WHEN @Error = '' THEN ERROR ELSE @Error END,
+                                     ATTEMPS = CASE WHEN @Status = 4 OR @Error != '' THEN COALESCE(ATTEMPS, 0) + 1 ELSE ATTEMPS END,
+                                     FINISHED = CASE WHEN @Finish THEN true ELSE false END,
+                                     UPDATED_AT = NOW() 
+                               WHERE CODE_PROCCESS_EVENT = @Proccess";
 
             using IDbConnection connection = GetConnection();
-            return await connection.ExecuteAsync(query, new { status, proccess }) > 0;
+            return await connection.ExecuteAsync(query, new { Status = (int)status, proccess, error, finish }) > 0;
         }
         catch (Exception exception)
         {

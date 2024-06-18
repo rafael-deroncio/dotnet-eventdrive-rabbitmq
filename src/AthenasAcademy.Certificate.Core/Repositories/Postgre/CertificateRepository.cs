@@ -12,6 +12,7 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
 {
     private readonly ILogger<CertificateRepository> _logger;
 
+
     public CertificateRepository(
         IOptions<PostgreSettings> settings,
         ILogger<CertificateRepository> logger) : base(settings.Value)
@@ -29,9 +30,9 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
                                     CER.STUDANT_DOCUMENT        StudantDocument,
                                     CER.STUDANT_REGISTRATION    StudantRegistration,
                                     CER.COURSE                  Course,
+                                    CER.WORKLOAD                Workload,
                                     CER.COMPLETATION            Completation,
                                     CER.UTILIZATION             Utilization,
-                                    CER.ACTIVE                  Active,
                                     CER.CREATED_AT              CreatedAt,
                                     CER.UPDATED_AT              UpdatedAt,
                                     CEF.CODE_CERTIFICATE_FILE   CodeCertificateFile,
