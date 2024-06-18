@@ -1,4 +1,4 @@
-﻿namespace AthenasAcademy.Certificate.Domain;
+﻿namespace AthenasAcademy.Certificate.Domain.Responses;
 
 public record FileResponse
 {
