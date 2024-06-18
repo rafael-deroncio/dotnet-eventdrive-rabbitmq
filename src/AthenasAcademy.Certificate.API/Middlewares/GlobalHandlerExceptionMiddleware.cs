@@ -33,11 +33,11 @@ public class GlobalHandlerExceptionMiddleware
 
             string json = JsonSerializer.Serialize(response);
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.StatusCode = (int)ex.Code;
 
             await context.Response.WriteAsync(json);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             
             ExceptionResponse response = new()
