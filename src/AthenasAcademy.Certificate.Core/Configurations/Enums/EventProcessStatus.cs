@@ -4,11 +4,11 @@ namespace AthenasAcademy.Certificate.Core.Configurations.Enums;
 
 public enum EventProcessStatus
 {
-    [Description("OnProccess")]
-    OnProccess = 1,
-
     [Description("Padding")]
-    Padding = 2,
+    Padding = 1,
+
+    [Description("OnProccess")]
+    OnProccess = 2,
 
     [Description("Success")]
     Success = 3,
