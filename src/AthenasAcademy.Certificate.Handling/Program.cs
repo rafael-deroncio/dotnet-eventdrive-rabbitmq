@@ -14,6 +14,10 @@ builder.Host.UseSerilog();
 // Add use of secrets yaml file
 builder.Host.UseSecrets();
 
+// Configure secrets in IOptions
+builder.Services.ConfigureSecrets(builder.Configuration);
+builder.Services.ConfigureParameters(builder.Configuration);
+
 // Add Services DI
 builder.Services.AddServices();
 
@@ -31,6 +35,8 @@ builder.Services.AddEventBus(builder.Configuration);
 
 // Add Event Handlers DI
 builder.Services.AddEventHandler();
+
+// builder.Services.AddHostedService<ConsumerHostedService>();
 
 WebApplication app = builder.Build();
 

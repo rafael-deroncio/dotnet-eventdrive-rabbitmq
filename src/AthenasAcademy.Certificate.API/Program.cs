@@ -13,6 +13,10 @@ builder.Host.UseSerilog();
 // Add use of secrets yaml file
 builder.Host.UseSecrets();
 
+// Configure secrets in IOptions
+builder.Services.ConfigureSecrets(builder.Configuration);
+builder.Services.ConfigureParameters(builder.Configuration);
+
 // Add Custom Cors Policies
 builder.Services.AddCors(builder.Configuration);
 
