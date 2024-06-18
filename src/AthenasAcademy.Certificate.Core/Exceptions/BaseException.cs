@@ -14,16 +14,14 @@ public class BaseException : Exception
     {
         Title = title;
         Code = code;
-        Type =  (int)code >= 500 ? ResponseType.Fatal :
-                (int)code >= 400 ? ResponseType.Warning : ResponseType.Warning;
+        Type = GetResponseType(code);
     }
 
     public BaseException(string title, string message, Exception inner, HttpStatusCode code = HttpStatusCode.Continue) : base(message, inner)
     {
         Title = title;
         Code = code;
-        Type = (int)code >= 500 ? ResponseType.Fatal :
-                (int)code >= 400 ? ResponseType.Warning : ResponseType.Warning;
+        Type = GetResponseType(code);
     }
 
     public BaseException(string message, Exception inner) : base(message, inner)
@@ -31,5 +29,12 @@ public class BaseException : Exception
         Title = "Error";
         Type = ResponseType.Fatal;
         Code = HttpStatusCode.InternalServerError;
+    }
+
+    private static ResponseType GetResponseType(HttpStatusCode code)
+    {
+        return (int)code >= 500 ? ResponseType.Fatal :
+                (int)code >= 400 ? ResponseType.Warning :
+                (int)code < 300 ? ResponseType.Information : ResponseType.Warning;
     }
 }
