@@ -1,5 +1,6 @@
 using AthenasAcademy.Certificate.Core.Extensions;
 using AthenasAcademy.Certificate.Handling.Extensions;
+using AthenasAcademy.Certificate.Handling.Services;
 using Autofac.Extensions.DependencyInjection;
 using Serilog;
 
@@ -36,12 +37,6 @@ builder.Services.AddEventBus(builder.Configuration);
 // Add Event Handlers DI
 builder.Services.AddEventHandler();
 
-// builder.Services.AddHostedService<ConsumerHostedService>();
+builder.Services.AddHostedService<ConsumerHostedService>();
 
-WebApplication app = builder.Build();
-
-// Reduce ASP logs
-app.UseSerilogRequestLogging();
-
-// Map Events to Handlers
-app.MapEventBusHandlings();
+builder.Build().Run();

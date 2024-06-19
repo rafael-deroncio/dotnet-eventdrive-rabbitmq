@@ -37,7 +37,7 @@ public class GlobalHandlerExceptionMiddleware
 
             await context.Response.WriteAsync(json);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             
             ExceptionResponse response = new()

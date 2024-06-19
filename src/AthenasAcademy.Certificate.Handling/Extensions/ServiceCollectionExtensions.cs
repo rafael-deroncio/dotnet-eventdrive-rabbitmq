@@ -6,7 +6,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddEventHandler(this IServiceCollection services)
     {
-        services.AddTransient<GenerateCertificateEventHandler>();
+        services.AddTransient<CertificateEventHandler>();
         return services;
     }
 }
