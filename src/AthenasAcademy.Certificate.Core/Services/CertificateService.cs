@@ -1,4 +1,7 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using AthenasAcademy.Certificate.Core.Configurations;
 using AthenasAcademy.Certificate.Core.Configurations.Mapper.Interfaces;
@@ -8,6 +11,7 @@ using AthenasAcademy.Certificate.Core.Extensions;
 using AthenasAcademy.Certificate.Core.Models;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
 using AthenasAcademy.Certificate.Core.Repositories.Postgres.Interfaces;
+using AthenasAcademy.Certificate.Core.Requests;
 using AthenasAcademy.Certificate.Core.Services.Interfaces;
 using AthenasAcademy.Certificate.Domain;
 using AthenasAcademy.Certificate.Domain.Requests;
@@ -45,7 +49,8 @@ public class CertificateService(
             if (certificate != null)
             {
                 CertificateResponse response = _mapper.Map<CertificateResponse>(request);
-                response.Files = response.Files.Select(file => {
+                response.Files = response.Files.Select(file =>
+                {
                     file.Download = _bucketRepository.GetDownloadLink(file.Name);
                     return file;
                 }).ToList();
@@ -97,8 +102,31 @@ public class CertificateService(
         _logger.LogInformation("Start proccess event for generate certificate.");
         try
         {
-            // _logger.LogInformation("Success: {InpudData}", request);
-            throw new Exception(string.Format("Error Teste {0}", request));
+            // generate sign
+            string sign = GetSign();
+            string pathQR = Path.Combine(_parameters.PathQR, $"{sign}.png");
+
+            // generate html
+            CertificateParametersRequest certificateParameters = new()
+            {
+                StudantName = FormatStrName(request.Studant.Name),
+                StudantDocument = FormatStudantDocument(request.Studant.Document.Type, request.Studant.Document.Number),
+                StudantBornDate = FormatDate(request.Studant.BornDate),
+                StudantRegistration = FormatRegistration(request.Studant.Registration),
+
+                CourseName = FormatStrName(request.Course.Name),
+                CourseWorkload = FormatCourseWorkload(request.Course.Workload),
+                CourseUtilization = FormatCourseUtilization(request.Percentage),
+                CourseConslusion = FormatDate(request.ConclusionDate),
+
+                LogoImageLink = _bucketRepository.GetDownloadLink(_parameters.KeyLogo),
+                StampImageLink = _bucketRepository.GetDownloadLink(_parameters.KeyStamp),
+                QRCodeImageLink = _bucketRepository.GetDownloadLink(pathQR)
+            };
+
+            // generate pdf
+
+            // generate png            
         }
         catch (Exception exception)
         {
@@ -110,4 +138,37 @@ public class CertificateService(
             _logger.LogInformation("Finished proccess event for generate certificate.");
         }
     }
+
+    private static string GetSign()
+    {
+        string guid = Guid.NewGuid().ToString();
+        byte[] bytes = Encoding.UTF8.GetBytes(guid);
+        using SHA256 sha256 = SHA256.Create();
+        byte[] hashBytes = sha256.ComputeHash(bytes);
+        return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+    }
+
+    private static string FormatStrName(string str)
+    {
+        string formated = string.Join(" ", str.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(s => s.Trim())).ToLower();
+        return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(formated);
+    }
+
+    private static string FormatRegistration(string registration, string mask = "0000000000")
+        =>  registration.Trim().Length > mask.Length ?
+            registration.ToUpper().Trim() :
+            registration.ToUpper().Trim().PadLeft(mask.Length, '0');
+
+    private static string FormatStudantDocument(string type, string document) 
+        => $"{type} - {document.Replace(" ", string.Empty).Trim().ToUpper()}";
+
+    private static string FormatCourseWorkload(int workload) 
+        => $"{workload} hours";
+
+    private static string FormatCourseUtilization(double utilization) 
+        => string.Format("{0:0.0}", utilization).Replace(",", ".");
+
+    private static string FormatDate(DateTime date) 
+        => date.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("en-US"));
 }

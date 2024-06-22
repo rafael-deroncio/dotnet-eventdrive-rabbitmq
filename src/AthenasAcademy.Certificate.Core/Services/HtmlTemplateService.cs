@@ -3,7 +3,7 @@ using AthenasAcademy.Certificate.Core.Services.Interfaces;
 
 namespace AthenasAcademy.Certificate.Core.Services;
 
-public class HtmlTemplateService() : IHtmlTemplateService
+public class HtmlTemplateService : IHtmlTemplateService
 {
     public async Task<string> GetHtml(object obj, string template, string qrcodeSign)
     {
