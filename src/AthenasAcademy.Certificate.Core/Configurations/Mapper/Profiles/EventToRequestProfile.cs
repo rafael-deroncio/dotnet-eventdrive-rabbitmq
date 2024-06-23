@@ -11,15 +11,15 @@ namespace AthenasAcademy.Certificate.Core.Configurations.Mapper.Profiles
         public EventToRequestProfile()
         {
             CreateMap<CertificateEvent, CertificateRequest>()
-                .ForPath(dest => dest.Studant.Name,
-                    opts => opts.MapFrom(src => src.StudantName))
-                .ForPath(dest => dest.Studant.BornDate,
-                    opts => opts.MapFrom(src => src.StudantBornDate))
-                .ForPath(dest => dest.Studant.Registration,
+                .ForPath(dest => dest.Student.Name,
+                    opts => opts.MapFrom(src => src.StudentName))
+                .ForPath(dest => dest.Student.BornDate,
+                    opts => opts.MapFrom(src => src.StudentBornDate))
+                .ForPath(dest => dest.Student.Registration,
                     opts => opts.MapFrom(src => src.Registration))
-                .ForPath(dest => dest.Studant.Document.Number,
+                .ForPath(dest => dest.Student.Document.Number,
                     opts => opts.MapFrom(src => src.DocumentNumber))
-                .ForPath(dest => dest.Studant.Document.Type,
+                .ForPath(dest => dest.Student.Document.Type,
                     opts => opts.MapFrom(src => src.DocumentType))
                 .ForPath(dest => dest.Course.Name,
                     opts => opts.MapFrom(src => src.CourseName))

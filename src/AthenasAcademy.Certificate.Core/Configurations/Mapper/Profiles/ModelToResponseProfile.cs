@@ -9,7 +9,7 @@ public class ModelToResponseProfile : Profile
     public ModelToResponseProfile()
     {
         CreateMap<CertificateModel, CertificateResponse>()
-        .ForMember(dest => dest.Studant, 
+        .ForMember(dest => dest.Student, 
             opts => opts.MapFrom(src => src.StudentName))
         .ForMember(dest => dest.Course, 
             opts => opts.MapFrom(src => src.Course))
