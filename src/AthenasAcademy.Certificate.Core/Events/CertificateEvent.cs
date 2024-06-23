@@ -6,8 +6,8 @@ public class CertificateEvent : BaseEvent
 {
     public int CodeEventProccess { get; set; }
     public string Registration { get; set; }
-    public string StudantName { get; set; }
-    public DateTime StudantBornDate { get; set; }
+    public string StudentName { get; set; }
+    public DateTime StudentBornDate { get; set; }
     public string DocumentNumber { get; set; }
     public string DocumentType { get; set; }
     public string CourseName { get; set; }
