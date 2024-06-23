@@ -1,36 +1,52 @@
 -- Drop existing tables if they exist
 DROP TABLE IF EXISTS CERTIFICATE_FILES;
+DROP TABLE IF EXISTS CERTIFICATE_DISCIPLINES;
 DROP TABLE IF EXISTS CERTIFICATES;
 DROP TABLE IF EXISTS PROCCESS_EVENT;
 DROP TABLE IF EXISTS PROCCESS_EVENT_STATUS;
 
 -- Drop existing sequences if they exist
 DROP SEQUENCE IF EXISTS seq_certificates;
+DROP SEQUENCE IF EXISTS seq_certificate_disciplines;
 DROP SEQUENCE IF EXISTS seq_certificates_files;
 DROP SEQUENCE IF EXISTS seq_event_proccess;
 
 -- Create sequences
 CREATE SEQUENCE seq_certificates;
+CREATE SEQUENCE seq_certificate_disciplines;
 CREATE SEQUENCE seq_certificates_files;
 CREATE SEQUENCE seq_event_proccess;
 
 -- Set the starting value of the sequences to a random number
 SELECT setval('seq_certificates', round(random() * (99999 - 10000) + 10000)::bigint);
+SELECT setval('seq_certificate_disciplines', round(random() * (99999 - 10000) + 10000)::bigint);
 SELECT setval('seq_certificates_files', round(random() * (99999 - 10000) + 10000)::bigint);
 SELECT setval('seq_event_proccess', round(random() * (99999 - 10000) + 10000)::bigint);
 
 -- Create the certificates table with random sequence
 CREATE TABLE CERTIFICATES (
   CODE_CERTIFICATE INTEGER PRIMARY KEY DEFAULT nextval('seq_certificates'),
-  STUDANT_NAME VARCHAR(100) NOT NULL,
-  STUDANT_DOCUMENT VARCHAR(100) NOT NULL,
-  STUDANT_REGISTRATION VARCHAR(50) NOT NULL,
+  STUDENT_NAME VARCHAR(100) NOT NULL,
+  STUDENT_DOCUMENT VARCHAR(100) NOT NULL,
+  STUDENT_REGISTRATION VARCHAR(50) NOT NULL,
   COURSE VARCHAR(100) NOT NULL,
   WORKLOAD INTEGER NOT NULL,
   COMPLETATION DATE NOT NULL,
   UTILIZATION NUMERIC(5, 2) NOT NULL,
   CREATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
   UPDATED_AT TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Create the certificate disciplines table with random sequence
+CREATE TABLE CERTIFICATE_DISCIPLINES(
+  CODE_CERTIFICATE_MODULE INTEGER PRIMARY KEY DEFAULT nextval('seq_certificate_disciplines'),
+  CODE_CERTIFICATE INTEGER NOT NULL,
+  DISCIPLINE VARCHAR(255) NOT NULL,
+  WORKLOAD INTEGER NOT NULL,
+  UTILIZATION NUMERIC(5, 2) NOT NULL,
+  CREATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
+  UPDATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT FK_CERTIFICATE FOREIGN KEY (CODE_CERTIFICATE) REFERENCES CERTIFICATES (CODE_CERTIFICATE) ON DELETE CASCADE
 );
 
 -- Create the file_details table with random sequence

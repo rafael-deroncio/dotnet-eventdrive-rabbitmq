@@ -8,6 +8,7 @@ services:
     environment:
       MINIO_ROOT_USER: mscott
       MINIO_ROOT_PASSWORD: IoSo1F4nt4$71c0
+      MINIO_HTTP_TRACE: "off"
     command: server /data --console-address ":9001"
     volumes:
       - minio:/data
