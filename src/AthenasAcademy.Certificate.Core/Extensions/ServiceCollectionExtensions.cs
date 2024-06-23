@@ -66,7 +66,6 @@ public static class ServiceCollectionExtensions
             ServiceURL = settings.ServiceURL,
             ForcePathStyle = settings.ForcePathStyle,
             SignatureVersion = settings.SignatureVersion,
-            SignatureMethod = SigningAlgorithm.HmacSHA256
         };
 
         BasicAWSCredentials credentials = new(settings.AccessKey, settings.SecretKey);
