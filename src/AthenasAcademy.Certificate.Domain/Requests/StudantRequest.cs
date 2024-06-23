@@ -1,6 +1,6 @@
 ﻿namespace AthenasAcademy.Certificate.Domain.Requests;
 
-public record StudantRequest
+public record StudentRequest
 {
     public string Name { get; set; }
     public DateTime BornDate { get; set; }

@@ -3,5 +3,6 @@
 public enum CertificateRole
 {
     Generate,
+    Validate,
     Get
 }

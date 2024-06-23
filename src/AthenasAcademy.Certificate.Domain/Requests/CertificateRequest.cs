@@ -2,9 +2,9 @@
 
 public record CertificateRequest
 {
-    public StudantRequest Studant { get; set; }
+    public StudentRequest Student { get; set; }
     public CourseRequest Course { get; set; }
-    public double Percentage { get; set; }
+    public double Utilization { get; set; }
     public DateTime ConclusionDate { get; set; }
 
 }
