@@ -181,4 +181,28 @@ public class BucketRepository(
             _logger.LogInformation("Finishing asyncupload for file {0}.", key);
         }
     }
+
+    public string GetDownloadLink(string bucket, string key, int expires = 3600)
+    {
+        return _client.GetPreSignedURL(new()
+        {
+            BucketName = bucket,
+            Key = key,
+            Expires = DateTime.UtcNow.AddSeconds(expires),
+            Verb = HttpVerb.GET,
+            Protocol = Protocol.HTTP
+        });
+    }
+
+    public async Task<string> GetDownloadLinkAsync(string bucket, string key, int expires = 3600)
+    {
+        return await _client.GetPreSignedURLAsync(new()
+        {
+            BucketName = bucket,
+            Key = key,
+            Expires = DateTime.UtcNow.AddSeconds(expires),
+            Verb = HttpVerb.GET,
+            Protocol = Protocol.HTTP
+        });
+    }
 }
