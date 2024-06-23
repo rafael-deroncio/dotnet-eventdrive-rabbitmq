@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<ICertificateService, CertificateService>();
         services.AddScoped<IHtmlTemplateService, HtmlTemplateService>();
+        services.AddScoped<IQRCodeService, QRCodeService>();
         return services;
     }
 
@@ -63,7 +64,9 @@ public static class ServiceCollectionExtensions
         {
             RegionEndpoint = RegionEndpoint.GetBySystemName(settings.Region),
             ServiceURL = settings.ServiceURL,
-            ForcePathStyle = settings.ForcePathStyle
+            ForcePathStyle = settings.ForcePathStyle,
+            SignatureVersion = settings.SignatureVersion,
+            SignatureMethod = SigningAlgorithm.HmacSHA256
         };
 
         BasicAWSCredentials credentials = new(settings.AccessKey, settings.SecretKey);
@@ -125,20 +128,5 @@ public static class ServiceCollectionExtensions
         });
 
         return services;
-    }
-
-    public static IApplicationBuilder UseBucketS3(this IApplicationBuilder builder, bool start = false)
-    {
-        if (start)
-        {
-            IBucketRepository s3 = builder.ApplicationServices.GetRequiredService<IBucketRepository>();
-
-            if (s3 != null)
-                s3.InitializeBucketAsync().Wait();
-            else
-                throw new Exception("IBucketRepository service is not registered in the DI container.");
-        }
-
-        return builder;
     }
 }
