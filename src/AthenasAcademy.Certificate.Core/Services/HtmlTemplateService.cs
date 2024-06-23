@@ -5,7 +5,7 @@ namespace AthenasAcademy.Certificate.Core.Services;
 
 public class HtmlTemplateService : IHtmlTemplateService
 {
-    public async Task<string> GetHtml(object obj, string template, string qrcodeSign)
+    public async Task<string> GetHtml(object obj, string template)
     {
         Dictionary<string, string> parameters = ConvertToDictParamters(obj);
         string html = ParseParametersToTemplate(parameters, template);
@@ -20,8 +20,8 @@ public class HtmlTemplateService : IHtmlTemplateService
         foreach (PropertyInfo property in type.GetProperties())
         {
             string name = property.Name;
-            object value = property.GetValue(property);
-            dict.Add($"{name.ToUpper()}", $"{value}");
+            object value = property.GetValue(obj)?.ToString() ?? string.Empty;
+            dict.Add($"${name.ToUpper()}", $"{value}");
         }
 
         return dict;
@@ -31,7 +31,7 @@ public class HtmlTemplateService : IHtmlTemplateService
     {
         foreach (KeyValuePair<string, string> parameter in parameters)
         {
-            template.Replace(parameter.Key, parameter.Value);
+            template = template.Replace(parameter.Key, parameter.Value);
         }
 
         return template;
