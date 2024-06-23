@@ -26,9 +26,9 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
         try
         {
             string query = @"SELECT CER.CODE_CERTIFICATE        CodeCertificate,
-                                    CER.STUDANT_NAME            StudantName,
-                                    CER.STUDANT_DOCUMENT        StudantDocument,
-                                    CER.STUDANT_REGISTRATION    StudantRegistration,
+                                    CER.Student_NAME            StudentName,
+                                    CER.Student_DOCUMENT        StudentDocument,
+                                    CER.Student_REGISTRATION    StudentRegistration,
                                     CER.COURSE                  Course,
                                     CER.WORKLOAD                Workload,
                                     CER.COMPLETATION            Completation,
@@ -45,7 +45,7 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
                             FROM CERTIFICATES CER
                             JOIN CERTIFICATE_FILES CEF 
                               ON CEF.CODE_CERTIFICATE = CER.CODE_CERTIFICATE
-                           WHERE CER.STUDANT_REGISTRATION = @Registration";
+                           WHERE CER.Student_REGISTRATION = @Registration";
 
             Dictionary<int, CertificateModel> certificateDict = [];
 
@@ -97,9 +97,9 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
         {
             string query = @"INSERT INTO CERTIFICATES 
                             (
-                                STUDANT_NAME, 
-                                STUDANT_DOCUMENT, 
-                                STUDANT_REGISTRATION, 
+                                Student_NAME, 
+                                Student_DOCUMENT, 
+                                Student_REGISTRATION, 
                                 COURSE, 
                                 COMPLETATION, 
                                 UTILIZATION
