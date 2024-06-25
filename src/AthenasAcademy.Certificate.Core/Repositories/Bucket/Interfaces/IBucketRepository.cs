@@ -8,6 +8,6 @@ public interface IBucketRepository
     Task UploadFileAsync(Stream stream, string bucket, string key);
     void DeleteFile(string bucket, string key);
     Task DeleteFileAsync(string bucket, string key);
-    string GetDownloadLink(string bucket, string key, int expires = 3600);
-    Task<string> GetDownloadLinkAsync(string bucket, string key, int expires = 3600);
+    string GetDownloadLink(string bucket, string key, int BucketLinkDownloadExpires = 3600);
+    Task<string> GetDownloadLinkAsync(string bucket, string key, int BucketLinkDownloadExpires = 3600);
 }

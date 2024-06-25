@@ -1,10 +1,8 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
-using AthenasAcademy.Certificate.Core.Configurations.Settings;
 using AthenasAcademy.Certificate.Core.Exceptions;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
-using Microsoft.Extensions.Options;
 
 namespace AthenasAcademy.Certificate.Core.Repositories.Bucket;
 
@@ -182,25 +180,25 @@ public class BucketRepository(
         }
     }
 
-    public string GetDownloadLink(string bucket, string key, int expires = 3600)
+    public string GetDownloadLink(string bucket, string key, int Expires = 3600)
     {
         return _client.GetPreSignedURL(new()
         {
             BucketName = bucket,
             Key = key,
-            Expires = DateTime.UtcNow.AddSeconds(expires),
+            Expires = DateTime.UtcNow.AddSeconds(Expires),
             Verb = HttpVerb.GET,
             Protocol = Protocol.HTTP
         });
     }
 
-    public async Task<string> GetDownloadLinkAsync(string bucket, string key, int expires = 3600)
+    public async Task<string> GetDownloadLinkAsync(string bucket, string key, int Expires = 3600)
     {
         return await _client.GetPreSignedURLAsync(new()
         {
             BucketName = bucket,
             Key = key,
-            Expires = DateTime.UtcNow.AddSeconds(expires),
+            Expires = DateTime.UtcNow.AddSeconds(Expires),
             Verb = HttpVerb.GET,
             Protocol = Protocol.HTTP
         });
