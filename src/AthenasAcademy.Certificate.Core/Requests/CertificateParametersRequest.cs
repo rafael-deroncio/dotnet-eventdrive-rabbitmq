@@ -2,10 +2,10 @@
 
 public record class CertificateParametersRequest
 {
-    public string StudantName { get; set; }
-    public string StudantDocument { get; set; }
-    public string StudantBornDate { get; set; }
-    public string StudantRegistration { get; set; }
+    public string StudentName { get; set; }
+    public string StudentDocument { get; set; }
+    public string StudentBornDate { get; set; }
+    public string StudentRegistration { get; set; }
 
     public string CourseName { get; set; }
     public string CourseWorkload { get; set; }

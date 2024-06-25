@@ -71,8 +71,8 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
 
                         if (fileDetail != null)
                         {
-                            temp.FileDetails = [];
-                            temp.FileDetails.Add(fileDetail);
+                            temp.Files = [];
+                            temp.Files.Add(fileDetail);
                         }
 
                         return temp;

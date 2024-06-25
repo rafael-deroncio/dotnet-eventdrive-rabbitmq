@@ -17,7 +17,7 @@ public class ConsumerHostedService(
     {
         List<Task> consumers =
         [
-            _eventBus.SubscribeAsync<CertificateEvent, CertificateEventHandler>(cancellationToken, _parameters.MaxAttempsEvent)
+            _eventBus.SubscribeAsync<CertificateEvent, CertificateEventHandler>(cancellationToken, _parameters.EventMaxAttemps)
         ];
 
         await Task.WhenAll(consumers);

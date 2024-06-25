@@ -44,14 +44,14 @@ public class CertificateService(
         _logger.LogInformation("Start proccess request for generate certificate.");
         try
         {
-            CertificateModel certificate = await _certificateRepository.GetCertificateByRegistration(request.Studant.Registration);
+            CertificateModel certificate = await _certificateRepository.GetCertificateByRegistration(request.Student.Registration);
 
             if (certificate != null)
             {
                 CertificateResponse response = _mapper.Map<CertificateResponse>(request);
                 response.Files = response.Files.Select(file =>
                 {
-                    file.Download = _bucketRepository.GetDownloadLink(file.Name);
+                    file.Download = _bucketRepository.GetDownloadLink(_parameters.BucketName, file.Name);
                     return file;
                 }).ToList();
                 return response;
@@ -65,7 +65,7 @@ public class CertificateService(
 
             throw new CertificateException(
                 title: "Solicitation Proccess",
-                message: string.Format("Certificate with register number {0} in proccess. Plase, await!", request.Studant.Registration),
+                message: string.Format("Certificate with register number {0} in proccess. Plase, await!", request.Student.Registration),
                 HttpStatusCode.OK);
         }
         catch (Exception exception)
@@ -104,24 +104,24 @@ public class CertificateService(
         {
             // generate sign
             string sign = GetSign();
-            string pathQR = Path.Combine(_parameters.PathQR, $"{sign}.png");
+            string pathQR = Path.Combine(_parameters.BucketPathQR, $"{sign}.png");
 
             // generate html
             CertificateParametersRequest certificateParameters = new()
             {
-                StudantName = FormatStrName(request.Studant.Name),
-                StudantDocument = FormatStudantDocument(request.Studant.Document.Type, request.Studant.Document.Number),
-                StudantBornDate = FormatDate(request.Studant.BornDate),
-                StudantRegistration = FormatRegistration(request.Studant.Registration),
+                StudentName = FormatStrName(request.Student.Name),
+                StudentDocument = FormatStudentDocument(request.Student.Document.Type, request.Student.Document.Number),
+                StudentBornDate = FormatDate(request.Student.BornDate),
+                StudentRegistration = FormatRegistration(request.Student.Registration),
 
                 CourseName = FormatStrName(request.Course.Name),
                 CourseWorkload = FormatCourseWorkload(request.Course.Workload),
-                CourseUtilization = FormatCourseUtilization(request.Percentage),
+                CourseUtilization = FormatCourseUtilization(request.Utilization),
                 CourseConslusion = FormatDate(request.ConclusionDate),
 
-                LogoImageLink = _bucketRepository.GetDownloadLink(_parameters.KeyLogo),
-                StampImageLink = _bucketRepository.GetDownloadLink(_parameters.KeyStamp),
-                QRCodeImageLink = _bucketRepository.GetDownloadLink(pathQR)
+                LogoImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, _parameters.BucketKeyLogo),
+                StampImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, _parameters.BucketKeyStamp),
+                QRCodeImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, pathQR)
             };
 
             // generate pdf
@@ -160,7 +160,7 @@ public class CertificateService(
             registration.ToUpper().Trim() :
             registration.ToUpper().Trim().PadLeft(mask.Length, '0');
 
-    private static string FormatStudantDocument(string type, string document) 
+    private static string FormatStudentDocument(string type, string document) 
         => $"{type} - {document.Replace(" ", string.Empty).Trim().ToUpper()}";
 
     private static string FormatCourseWorkload(int workload) 

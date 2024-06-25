@@ -38,7 +38,7 @@ public class CertificateEventHandler(
             }
             catch (Exception ex)
             {
-                if (!await _proccessEventRepository.MaximumAttemptsReached(@event.CodeEventProccess, _parameters.MaxAttempsEvent))
+                if (!await _proccessEventRepository.MaximumAttemptsReached(@event.CodeEventProccess, _parameters.EventMaxAttemps))
                     await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Padding, ex.Message);
                 else
                     await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Error, ex.Message, finish: true);
