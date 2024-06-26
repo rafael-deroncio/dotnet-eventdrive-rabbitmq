@@ -9,10 +9,12 @@ namespace AthenasAcademy.Certificate.API.Middlewares;
 
 public class GlobalHandlerExceptionMiddleware
 {
+    private readonly ILogger<GlobalHandlerExceptionMiddleware> _logger;
     private readonly RequestDelegate _next;
 
-    public GlobalHandlerExceptionMiddleware(RequestDelegate next)
+    public GlobalHandlerExceptionMiddleware(RequestDelegate next, ILogger<GlobalHandlerExceptionMiddleware> logger)
     {
+        _logger = logger;
         _next = next;
     }
 
@@ -37,9 +39,9 @@ public class GlobalHandlerExceptionMiddleware
 
             await context.Response.WriteAsync(json);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            
+            _logger.LogError(ex, "Error on procces request.");
             ExceptionResponse response = new()
             {
                 Title = "Internal Error",
