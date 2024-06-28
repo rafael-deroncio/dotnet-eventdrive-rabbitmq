@@ -39,6 +39,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICertificateService, CertificateService>();
         services.AddScoped<IHtmlTemplateService, HtmlTemplateService>();
         services.AddScoped<IQRCodeService, QRCodeService>();
+        services.AddScoped<IPDFService, PDFService>();
+        services.AddScoped<IPNGService, PNGService>();
         return services;
     }
 
