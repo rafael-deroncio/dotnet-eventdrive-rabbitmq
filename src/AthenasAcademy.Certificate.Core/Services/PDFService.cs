@@ -34,13 +34,15 @@ public class PDFService(
         }
     }
 
-    private string GetStaticSettings()
+    private static string GetStaticSettings()
         => new PDFOptionsBuilder()
-                .SetMargins(top: 5, bottom: 5, left: 5, right: 5)
-                .SetZoom("1.2")
+                .SetMargins(top: 0, bottom: 0, left: 0, right: 0)
+                .SetZoom("1.10")
+                .SetDisableSmartShrinking(true)
+                .SetDpi("300")
                 .SetPrintMediaType(true)
                 .SetPageWidth(10)
-                .SetPageHeight(5.7)
+                .SetPageHeight(6.088)
                 .Build()
                 .ToArgumentsString();
 }
