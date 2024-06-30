@@ -13,7 +13,6 @@ public class ObjectConverter : IObjectConverter
         _mapper = new MapperConfiguration(
             config =>
                 {
-                    config.AddProfile(new EventToRequestProfile());
                     config.AddProfile(new ModelToResponseProfile());
                 }).CreateMapper();
     }

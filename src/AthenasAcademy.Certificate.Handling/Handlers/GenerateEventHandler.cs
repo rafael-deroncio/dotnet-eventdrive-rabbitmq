@@ -1,6 +1,6 @@
-﻿using AthenasAcademy.Certificate.Core.Configurations;
+﻿using System.Text.Json;
+using AthenasAcademy.Certificate.Core.Configurations;
 using AthenasAcademy.Certificate.Core.Configurations.Enums;
-using AthenasAcademy.Certificate.Core.Configurations.Mapper.Interfaces;
 using AthenasAcademy.Certificate.Core.Events;
 using AthenasAcademy.Certificate.Core.Repositories.Postgres.Interfaces;
 using AthenasAcademy.Certificate.Core.Services.Interfaces;
@@ -12,13 +12,11 @@ namespace AthenasAcademy.Certificate.Handling.Handlers;
 
 public class CertificateEventHandler(
     IOptions<Parameters> options,
-    IObjectConverter mapper,
     ICertificateService certificateService,
     IProccessEventRepository proccessEventRepository
     ) : IEventHandler<CertificateEvent>
 {
     private readonly Parameters _parameters = options.Value;
-    private readonly IObjectConverter _mapper = mapper;
     private readonly ICertificateService _certificateService = certificateService;
     private readonly IProccessEventRepository _proccessEventRepository = proccessEventRepository;
 
@@ -31,7 +29,8 @@ public class CertificateEventHandler(
             {
                 await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.OnProccess);
 
-                CertificateRequest request = _mapper.Map<CertificateRequest>(@event);
+                string json = await _proccessEventRepository.GetEventProccess(@event.CodeEventProccess);
+                CertificateRequest request = JsonSerializer.Deserialize<CertificateRequest>(@json);
                 await _certificateService.ProccessEventGenerateCertificate(request);
 
                 await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Success);

@@ -113,4 +113,27 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
             _logger.LogInformation("Finished update event proccess.");
         }
     }
+
+    public async Task<string> GetEventProccess(int proccess)
+    {
+        _logger.LogInformation("Start gets event proccess.");
+        try
+        {
+            string query = @$"SELECT JSONB(JSON)
+                              FROM PROCCESS_EVENT 
+                              WHERE CODE_PROCCESS_EVENT = @Proccess";
+
+            using IDbConnection connection = GetConnection();
+            return await connection.QueryFirstOrDefaultAsync<string>(query, new { proccess });
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError("Error on gets event proccess. {0}", exception.Message);
+            throw;
+        }
+        finally
+        {
+            _logger.LogInformation("Finished gets event proccess.");
+        }
+    }
 }
