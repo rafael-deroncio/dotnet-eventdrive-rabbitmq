@@ -15,4 +15,6 @@ public record class CertificateParametersRequest
     public string LogoImageLink { get; set; }
     public string StampImageLink { get; set; }
     public string QRCodeImageLink { get; set; }
+
+    public string LocationToday { get; set; }
 }
