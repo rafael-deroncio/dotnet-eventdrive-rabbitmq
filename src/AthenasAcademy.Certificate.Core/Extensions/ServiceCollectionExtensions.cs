@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
         services.Configure<PostgreSettings>(configuration.GetSection("Postgre"));
         services.Configure<AWSSettings>(configuration.GetSection("AWS"));
         services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
+        services.Configure<PDFSettings>(configuration.GetSection("PDF"));
         return services;
     }
 
