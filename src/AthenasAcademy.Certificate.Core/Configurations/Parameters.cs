@@ -11,5 +11,4 @@ public record Parameters
     public string BucketKeyTemplate { get; set; }
     public int BucketLinkDownloadExpires { get; set; }
     public int EventMaxAttemps { get; set; }
-    public string DirectoryWkhtmltopdf { get; set; }
 }
