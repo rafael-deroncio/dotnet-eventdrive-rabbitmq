@@ -42,6 +42,11 @@
         public bool EnableJavascript { get; private set; }
 
         /// <summary>
+        /// Gets or sets a value indicating smarth shrinking is disable in the PDF.
+        /// </summary>
+        public bool DisableSmartShrinking { get; private set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the background is excluded from the PDF.
         /// </summary>
         public bool NoBackground { get; private set; }
@@ -94,6 +99,7 @@
             if (NoImages) args.Add("--no-images");
             if (DisableJavascript) args.Add("--disable-javascript");
             if (EnableJavascript) args.Add("--enable-javascript");
+            if (DisableSmartShrinking) args.Add("--disable-smart-shrinking");
             if (NoBackground) args.Add("--no-background");
             if (Grayscale) args.Add("--grayscale");
             if (PrintMediaType) args.Add("--print-media-type");
@@ -184,6 +190,17 @@
             public PDFOptionsBuilder SetEnableJavascript(bool enableJavascript)
             {
                 _options.EnableJavascript = enableJavascript;
+                return this;
+            }
+
+            /// <summary>
+            /// Sets whether JavaScript should be enabled in the PDF.
+            /// </summary>
+            /// <param name="disableSmartShrinking">Boolean indicating whether to disable Smart Shrinking.</param>
+            /// <returns>The PDFOptionsBuilder instance for method chaining.</returns>
+            public PDFOptionsBuilder SetDisableSmartShrinking(bool disableSmartShrinking)
+            {
+                _options.DisableSmartShrinking = disableSmartShrinking;
                 return this;
             }
 
