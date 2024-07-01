@@ -26,6 +26,9 @@ public class CertificateService(
     ILogger<CertificateService> logger,
     IObjectConverter mapper,
     IEventBus eventBus,
+    IQRCodeService qrcodeService,
+    IHtmlTemplateService templateService,
+    IPDFService pdfService,
     ICertificateRepository certificateRepository,
     IProccessEventRepository proccessEventRepository,
     IBucketRepository bucketRepository
@@ -35,6 +38,9 @@ public class CertificateService(
     private readonly ILogger<CertificateService> _logger = logger;
     private readonly IObjectConverter _mapper = mapper;
     private readonly IEventBus _eventBus = eventBus;
+    private readonly IQRCodeService _qrcodeService = qrcodeService;
+    private readonly IHtmlTemplateService _templateService = templateService;
+    private readonly IPDFService _pdfService = pdfService;
     private readonly ICertificateRepository _certificateRepository = certificateRepository;
     private readonly IProccessEventRepository _proccessEventRepository = proccessEventRepository;
     private readonly IBucketRepository _bucketRepository = bucketRepository;
@@ -57,11 +63,12 @@ public class CertificateService(
                 return response;
             }
 
-            CertificateEvent @event = _mapper.Map<CertificateEvent>(request);
-            string json = JsonSerializer.Serialize(request);
-            @event.CodeEventProccess = await _proccessEventRepository.SaveEventProccess(json);
-
-            await _eventBus.PublishAsync(@event);
+            await _eventBus.PublishAsync(new CertificateEvent()
+            {
+                CodeEventProccess = await _proccessEventRepository.SaveEventProccess(
+                    JsonSerializer.Serialize(request)
+                ),
+            });
 
             throw new CertificateException(
                 title: "Solicitation Proccess",
@@ -104,29 +111,31 @@ public class CertificateService(
         {
             // generate sign
             string sign = GetSign();
-            string pathQR = Path.Combine(_parameters.BucketPathQR, $"{sign}.png");
+
+            // generate QRCode
+            string pathQRCode = Path.Combine(_parameters.BucketPathQR, $"{sign}.png");
+            using (MemoryStream ms = new(await _qrcodeService.GetQRCode(sign)))
+            {
+                await _bucketRepository.UploadFileAsync(ms, _parameters.BucketName, pathQRCode);
+            }
 
             // generate html
-            CertificateParametersRequest certificateParameters = new()
+            string html = string.Empty;
+            Stream stream = await _bucketRepository.GetFileAsync(_parameters.BucketName, _parameters.BucketKeyTemplate);
+            using (StreamReader reader = new(stream))
             {
-                StudentName = FormatStrName(request.Student.Name),
-                StudentDocument = FormatStudentDocument(request.Student.Document.Type, request.Student.Document.Number),
-                StudentBornDate = FormatDate(request.Student.BornDate),
-                StudentRegistration = FormatRegistration(request.Student.Registration),
-
-                CourseName = FormatStrName(request.Course.Name),
-                CourseWorkload = FormatCourseWorkload(request.Course.Workload),
-                CourseUtilization = FormatCourseUtilization(request.Utilization),
-                CourseConslusion = FormatDate(request.ConclusionDate),
-
-                LogoImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, _parameters.BucketKeyLogo),
-                StampImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, _parameters.BucketKeyStamp),
-                QRCodeImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, pathQR)
-            };
+                string template = await reader.ReadToEndAsync();
+                CertificateParametersRequest parameters = await GetParametersForCertificateTemlate(request, pathQRCode);
+                html = await _templateService.GetHtml(parameters, template);
+            }
 
             // generate pdf
-
-            // generate png            
+            byte[] bytesPDF = await _pdfService.ConvertHTMLToPDF(html);
+            using (MemoryStream ms = new(bytesPDF))
+            {
+                string bucketKeyPdf = Path.Combine(_parameters.BucketPathPdf, $"{sign}.pdf");
+                await _bucketRepository.UploadFileAsync(ms, _parameters.BucketName, bucketKeyPdf);
+            }
         }
         catch (Exception exception)
         {
@@ -138,6 +147,26 @@ public class CertificateService(
             _logger.LogInformation("Finished proccess event for generate certificate.");
         }
     }
+
+    private async Task<CertificateParametersRequest> GetParametersForCertificateTemlate(CertificateRequest request, string pathQRCode)
+        => new CertificateParametersRequest
+        {
+            StudentName = FormatStrName(request.Student.Name),
+            StudentDocument = FormatStudentDocument(request.Student.Document.Type, request.Student.Document.Number),
+            StudentBornDate = FormatDate(request.Student.BornDate),
+            StudentRegistration = FormatRegistration(request.Student.Registration),
+
+            CourseName = FormatStrName(request.Course.Name),
+            CourseWorkload = FormatCourseWorkload(request.Course.Workload),
+            CourseUtilization = FormatCourseUtilization(request.Utilization),
+            CourseConslusion = FormatDate(request.ConclusionDate),
+
+            LogoImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, _parameters.BucketKeyLogo),
+            StampImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, _parameters.BucketKeyStamp),
+            QRCodeImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, pathQRCode),
+
+            LocationToday = FormatLocationDate(request.ConclusionDate)
+        };
 
     private static string GetSign()
     {
@@ -156,19 +185,22 @@ public class CertificateService(
     }
 
     private static string FormatRegistration(string registration, string mask = "0000000000")
-        =>  registration.Trim().Length > mask.Length ?
+        => registration.Trim().Length > mask.Length ?
             registration.ToUpper().Trim() :
             registration.ToUpper().Trim().PadLeft(mask.Length, '0');
 
-    private static string FormatStudentDocument(string type, string document) 
+    private static string FormatStudentDocument(string type, string document)
         => $"{type} - {document.Replace(" ", string.Empty).Trim().ToUpper()}";
 
-    private static string FormatCourseWorkload(int workload) 
-        => $"{workload} hours";
+    private static string FormatCourseWorkload(int workload)
+        => $"{workload}h";
 
-    private static string FormatCourseUtilization(double utilization) 
-        => string.Format("{0:0.0}", utilization).Replace(",", ".");
+    private static string FormatCourseUtilization(decimal utilization)
+        => $"{(int)Math.Round(utilization)}%";
 
-    private static string FormatDate(DateTime date) 
+    private static string FormatDate(DateTime date)
         => date.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("en-US"));
+
+    private static string FormatLocationDate(DateTime date)
+        => $"São Paulo - Brazil, {FormatDate(date)}";
 }
