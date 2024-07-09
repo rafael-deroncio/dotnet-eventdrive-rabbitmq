@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: 11in 8.5in;
+            margin: 1in;
+        }
+
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        .container-certificate {
+            width: 13in;
+            height: 7in;
+            box-sizing: border-box;
+            text-align: center;
+            position: relative;
+
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container-certificate::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23FFD700" fill-opacity="1" d="M0,160L48,181.3C96,203,192,245,288,250.7C384,256,480,224,576,186.7C672,149,768,107,864,106.7C960,107,1056,149,1152,165.3C1248,181,1344,171,1392,165.3L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-size: cover;
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            width: auto;
+            height: 40%;
+        }
+
+        header >h1{
+            font-size: 50px;
+        }
+
+        header>img {
+            height: 100px;
+            width: auto;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            width: auto;
+            height: 30%;
+        }
+
+        main>p {
+            width: 80%;
+        }
+
+        footer {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+
+            width: auto;
+            height: 30%;
+        }
+
+        footer>img {
+            height: 150px;
+            width: auto;
+        }
+
+        footer>p {
+            border-top: 1px solid black;
+            padding-top: 15px;
+            margin-left: 15%;
+            margin-right: 15%;
+            
+            height: 0px;
+            width: 20%;
+        }
+
+        #qrcode{
+            height: 130px;
+            border: 1.5px dashed black;
+        }
+
+    </style>
+    <title>{{DOCUMENTTITLE}}</title>
+</head>
+
+<body>
+    <div class="container-certificate">
+        <header>
+            <img src={{LOGOLINK}} alt="LOGO">
+            <h1>
+                ATHENAS ACADEMY
+            </h1>
+        </header>
+        <main>
+            <h2>
+                CERTIFICATE
+            </h2>
+            <h3>
+                <u>{{STUDANTNAME}}</u>
+            </h3>
+            <p>
+                registered with <strong>{{STUDANTREGISTRATION}}</strong> and holder of the document <strong>{{STUDANTDOCUMENT}}</strong> successfully
+                completed the course <strong>{{COURSENAME}}</strong> with <strong>{{COURSEWORKLOAD}}</strong> in <strong>{{COURSECONCLUSIONDATE}}</strong>, achieving
+                <strong>{{COURSEUTILIZATION}}</strong> of success.
+            </p>
+            <p>
+                <strong>{{LOCATIONDATETIME}}</strong>
+            </p>
+        </main>
+        <footer>
+            <img src={{STAMPLINK}} alt="STAMP">
+            <p>Saori Aakido</p>
+            <img id="qrcode" src={{QRCODELINK}} alt="QRCODE">
+        </footer>
+    </div>
+</body>
+
+</html>
