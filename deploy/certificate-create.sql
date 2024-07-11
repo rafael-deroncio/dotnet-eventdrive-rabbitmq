@@ -75,8 +75,8 @@ CREATE TABLE PROCCESS_EVENT_STATUS (
 -- Insert initial values into event_proccess_status with IDs
 INSERT INTO PROCCESS_EVENT_STATUS (CODE_STATUS, DESCRIPTION, ACTIVE)
 VALUES 
-    (1, 'OnProcecess', true),
-    (2, 'Pending', true),
+    (1, 'Pending', true),
+    (2, 'OnProcecess', true),
     (3, 'Success', true),
     (4, 'Error', true);
 
