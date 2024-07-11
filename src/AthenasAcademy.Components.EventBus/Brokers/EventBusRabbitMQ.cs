@@ -100,12 +100,12 @@ public class EventBusRabbitMQ(
 
         using (IModel channel = _persistentConnection.CreateModel())
         {
-            _logger.LogInformation("Starting consumer unsubscription to queue {0}.", queue);
+            _logger.LogDebug("Starting consumer unsubscription to queue {0}.", queue);
 
             _subscriptionsManager.RemoveSubscription<TEvent, TEventHandler>();
             channel.QueueDelete(queue: queue);
 
-            _logger.LogInformation("Finishing unsubscribing from consumer in queue {Queue} for EventHandler {Handler}.", queue, handler);
+            _logger.LogDebug("Finishing unsubscribing from consumer in queue {Queue} for EventHandler {Handler}.", queue, handler);
         }
 
         await Task.CompletedTask;
@@ -152,7 +152,7 @@ public class EventBusRabbitMQ(
 
         try
         {
-            _logger.LogInformation("Starting consumption of the {0} for message {1}.", queue, @event.Id);
+            _logger.LogDebug("Starting consumption of the {0} for message {1}.", queue, @event.Id);
 
             await ProccessEvent(@event).WaitAsync(CancellationToken.None);
             channel.BasicAck(args.DeliveryTag, false);
@@ -168,7 +168,7 @@ public class EventBusRabbitMQ(
         }
         finally
         {
-            _logger.LogInformation("Finishing consumption of queue {0} for message {1}.", queue, @event.Id);
+            _logger.LogDebug("Finishing consumption of queue {0} for message {1}.", queue, @event.Id);
         }
     }
 
@@ -182,7 +182,7 @@ public class EventBusRabbitMQ(
         channel.QueueBind(queueDql, exchangeDql, string.Empty);
         channel.BasicPublish(exchangeDql, string.Empty, properties, SerializeEvent(@event));
 
-        _logger.LogInformation("Message {0} send to dead latter queue.", @event.Id);
+        _logger.LogDebug("Message {0} send to dead latter queue.", @event.Id);
         await Task.CompletedTask;
     }
 
@@ -208,7 +208,7 @@ public class EventBusRabbitMQ(
         }
         else
         {
-            _logger.LogInformation("{0} already added", GetEventName<TEvent>());
+            _logger.LogDebug("{0} already added", GetEventName<TEvent>());
         }
     }
 
