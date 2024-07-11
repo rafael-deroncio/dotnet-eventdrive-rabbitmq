@@ -14,21 +14,13 @@ public class CertificateController(ICertificateService certificateService) : Con
 {
     private readonly ICertificateService _certificateService = certificateService;
 
-    [HttpGet("{register}/pdf")]
+    [HttpGet("{register}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(CertificateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetPdf(string register)
-        => Ok(await _certificateService.Get(register, Domain.ContentType.PDF));
-
-    [HttpGet("{register}/png")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(CertificateResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetPng(string register)
-        => Ok(await _certificateService.Get(register, Domain.ContentType.PNG));
+    public async Task<IActionResult> GetCertificate(string register)
+        => Ok(await _certificateService.GetCertificate(register));
 
     [HttpPost("generate")]
     [AllowAnonymous]
@@ -36,5 +28,5 @@ public class CertificateController(ICertificateService certificateService) : Con
     [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ExceptionResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Generate([FromBody] CertificateRequest request)
-         => Ok(await _certificateService.Generate(request));
+         => Ok(await _certificateService.CreateCertificate(request));
 }
