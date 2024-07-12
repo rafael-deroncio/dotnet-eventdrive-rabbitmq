@@ -8,5 +8,7 @@ public record CertificateArgument
     public string Course { get; set; }
     public DateTime Completion { get; set; }
     public decimal Utilization { get; set; }
-    public List<FileDetailArgument> FileDetails { get; set; }
+    public string Sign { get; set; }
+    public List<FileDetailArgument> Files { get; set; }
+    public List<DisciplineArgument> Disciplines { get; set; }
 }
