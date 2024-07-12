@@ -1,6 +1,6 @@
 ﻿using AthenasAcademy.Certificate.Core.Configurations.DTOs;
 
-namespace AthenasAcademy.Certificate.Core;
+namespace AthenasAcademy.Certificate.Core.Models;
 
 public record FileDetailModel : CommonDataDTO
 {
