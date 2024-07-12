@@ -2,6 +2,7 @@
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using AthenasAcademy.Certificate.Core.Exceptions;
+using AthenasAcademy.Certificate.Core.Models;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
 
 namespace AthenasAcademy.Certificate.Core.Repositories.Bucket;
@@ -202,5 +203,22 @@ public class BucketRepository(
             Verb = HttpVerb.GET,
             Protocol = Protocol.HTTP
         });
+    }
+
+    public async Task<FileDetailModel> GetFileDetailAsync(string bucket, string key)
+    {
+        GetObjectRequest request = new() { BucketName = bucket, Key = key };
+        GetObjectResponse response = await _client.GetObjectAsync(request);
+        string path = Path.Combine(bucket, key);
+
+        return new()
+        {
+            File = Path.GetFileName(path),
+            Type = Path.GetExtension(path),
+            Path = Path.GetDirectoryName(path),
+            Size = (int)response.Headers.ContentLength,
+            CreatedAt = response.LastModified,
+            UpdatedAt = response.LastModified
+        };
     }
 }

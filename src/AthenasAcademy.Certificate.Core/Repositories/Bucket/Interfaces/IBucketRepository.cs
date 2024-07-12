@@ -1,3 +1,5 @@
+using AthenasAcademy.Certificate.Core.Models;
+
 namespace AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
 
 public interface IBucketRepository
@@ -10,4 +12,5 @@ public interface IBucketRepository
     Task DeleteFileAsync(string bucket, string key);
     string GetDownloadLink(string bucket, string key, int BucketLinkDownloadExpires = 3600);
     Task<string> GetDownloadLinkAsync(string bucket, string key, int BucketLinkDownloadExpires = 3600);
+    Task<FileDetailModel> GetFileDetailAsync(string bucket, string key);
 }
