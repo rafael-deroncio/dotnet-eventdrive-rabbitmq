@@ -10,9 +10,9 @@ using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
 using AthenasAcademy.Certificate.Core.Repositories.Postgres.Interfaces;
 using AthenasAcademy.Certificate.Core.Services;
 using AthenasAcademy.Certificate.Core.Services.Interfaces;
-using AthenasAcademy.Components.EventBus;
-using AthenasAcademy.Components.EventBus.Brokers;
-using AthenasAcademy.Components.EventBus.Brokers.Interfaces;
+using AthenasAcademy.Certificate.EventBus;
+using AthenasAcademy.Certificate.EventBus.Brokers;
+using AthenasAcademy.Certificate.EventBus.Brokers.Interfaces;
 using Autofac;
 using RabbitMQ.Client;
 
@@ -25,7 +25,6 @@ public static class ServiceCollectionExtensions
         services.Configure<PostgreSettings>(configuration.GetSection("Postgre"));
         services.Configure<AWSSettings>(configuration.GetSection("AWS"));
         services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
-        services.Configure<PDFSettings>(configuration.GetSection("PDF"));
         return services;
     }
 
@@ -41,6 +40,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IHtmlTemplateService, HtmlTemplateService>();
         services.AddScoped<IQRCodeService, QRCodeService>();
         services.AddScoped<IPDFService, PDFService>();
+        services.AddScoped<IProccessEventService, ProccessEventService>();
         return services;
     }
 

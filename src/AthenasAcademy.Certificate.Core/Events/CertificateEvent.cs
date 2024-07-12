@@ -1,4 +1,4 @@
-﻿using AthenasAcademy.Components.EventBus;
+﻿using AthenasAcademy.Certificate.EventBus;
 
 namespace AthenasAcademy.Certificate.Core.Events;
 
