@@ -7,20 +7,20 @@ DROP TABLE IF EXISTS PROCCESS_EVENT_STATUS;
 
 -- Drop existing sequences if they exist
 DROP SEQUENCE IF EXISTS seq_certificate_discipline;
-DROP SEQUENCE IF EXISTS seq_certificates_file;
+DROP SEQUENCE IF EXISTS seq_certificate_file;
 DROP SEQUENCE IF EXISTS seq_certificate;
 DROP SEQUENCE IF EXISTS seq_event_proccess;
 
 -- Create sequences
 CREATE SEQUENCE seq_certificate;
 CREATE SEQUENCE seq_certificate_discipline;
-CREATE SEQUENCE seq_certificates_file;
+CREATE SEQUENCE seq_certificate_file;
 CREATE SEQUENCE seq_event_proccess;
 
 -- Set the starting value of the sequences to a random number
 SELECT setval('seq_certificate', round(random() * (99999 - 10000) + 10000)::bigint);
 SELECT setval('seq_certificate_discipline', round(random() * (99999 - 10000) + 10000)::bigint);
-SELECT setval('seq_certificates_file', round(random() * (99999 - 10000) + 10000)::bigint);
+SELECT setval('seq_certificate_file', round(random() * (99999 - 10000) + 10000)::bigint);
 SELECT setval('seq_event_proccess', round(random() * (99999 - 10000) + 10000)::bigint);
 
 -- Create the certificates table with random sequence
@@ -32,7 +32,8 @@ CREATE TABLE CERTIFICATE (
   COURSE VARCHAR(100) NOT NULL,
   WORKLOAD INTEGER NOT NULL,
   UTILIZATION NUMERIC(5, 2) NOT NULL,
-  COMPLETATION DATE NOT NULL,
+  CONCLUSION DATE NOT NULL,
+  SIGN VARCHAR(255) NOT NULL,
   CREATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
   UPDATED_AT TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -44,7 +45,7 @@ CREATE TABLE CERTIFICATE_DISCIPLINE(
   DISCIPLINE VARCHAR(255) NOT NULL,
   WORKLOAD INTEGER NOT NULL,
   UTILIZATION NUMERIC(5, 2) NOT NULL,
-  CONSLUSION TIMESTAMP NOT NULL,
+  CONCLUSION TIMESTAMP NOT NULL,
   CREATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
   UPDATED_AT TIMESTAMP NOT NULL DEFAULT NOW(),
   CONSTRAINT FK_CERTIFICATE FOREIGN KEY (CODE_CERTIFICATE) REFERENCES CERTIFICATE (CODE_CERTIFICATE) ON DELETE CASCADE
@@ -52,7 +53,7 @@ CREATE TABLE CERTIFICATE_DISCIPLINE(
   
 -- Create the file_details table with random sequence
 CREATE TABLE CERTIFICATE_FILE (
-  CODE_CERTIFICATE_FILE INTEGER PRIMARY KEY DEFAULT nextval('seq_certificates_file'),
+  CODE_CERTIFICATE_FILE INTEGER PRIMARY KEY DEFAULT nextval('seq_certificate_file'),
   CODE_CERTIFICATE INTEGER NOT NULL,
   FILE TEXT NOT NULL,
   TYPE VARCHAR(50) NOT NULL,
