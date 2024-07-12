@@ -38,8 +38,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AthenasAcademy.Certificate.EventBus\AthenasAcademy.Certificate.EventBus.csproj" />
     <ProjectReference Include="..\AthenasAcademy.Certificate.Domain\AthenasAcademy.Certificate.Domain.csproj" />
-    <ProjectReference Include="..\AthenasAcademy.Components.EventBus\AthenasAcademy.Components.EventBus.csproj" />
   </ItemGroup>
 
   <ItemGroup>

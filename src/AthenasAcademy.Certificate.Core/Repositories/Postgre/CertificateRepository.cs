@@ -22,7 +22,7 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
 
     public async Task<CertificateModel> GetCertificateByRegistration(string registration)
     {
-        _logger.LogInformation("Start get certificate by registration.");
+        _logger.LogDebug("Start get certificate by registration.");
         try
         {
             string query = @"SELECT CER.CODE_CERTIFICATE        CodeCertificate,
@@ -86,13 +86,13 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
         }
         finally
         {
-            _logger.LogInformation("Finished get certificate by registration.");
+            _logger.LogDebug("Finished get certificate by registration.");
         }
     }
 
     public async Task<CertificateModel> SaveCertificate(CertificateArgument argumet)
     {
-        _logger.LogInformation("Start save certificate.");
+        _logger.LogDebug("Start save certificate.");
         try
         {
             string query = @"INSERT INTO CERTIFICATES 
@@ -133,13 +133,13 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
         }
         finally
         {
-            _logger.LogInformation("Finished save certificate.");
+            _logger.LogDebug("Finished save certificate.");
         }
     }
 
     private async Task SaveCertificateFiles(IEnumerable<FileDetailArgument> arguments, int codeCertificate, IDbTransaction transaction)
     {
-        _logger.LogInformation("Start save certificate files.");
+        _logger.LogDebug("Start save certificate files.");
         try
         {
             string query = @"INSERT INTO CERTIFICATE_FILES 
@@ -168,7 +168,7 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
         }
         finally
         {
-            _logger.LogInformation("Finished save certificate files.");
+            _logger.LogDebug("Finished save certificate files.");
         }
     }
 }

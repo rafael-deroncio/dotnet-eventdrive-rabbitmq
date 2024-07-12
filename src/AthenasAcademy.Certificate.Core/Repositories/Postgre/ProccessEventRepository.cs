@@ -20,7 +20,7 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
 
     public async Task<bool> EventInProccess(int proccess)
     {
-        _logger.LogInformation("Start check event in proccess.");
+        _logger.LogDebug("Start check event in proccess.");
         try
         {
             string query = @"SELECT EVP.CODE_STATUS 
@@ -37,13 +37,13 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         }
         finally
         {
-            _logger.LogInformation("Finished check event in proccess.");
+            _logger.LogDebug("Finished check event in proccess.");
         }
     }
 
     public async Task<bool> MaximumAttemptsReached(int proccess, int maxAttempts)
     {
-        _logger.LogInformation("Start check max attemps for event");
+        _logger.LogDebug("Start check max attemps for event");
         try
         {
             string query = @"SELECT EVP.ATTEMPS 
@@ -60,13 +60,13 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         }
         finally
         {
-            _logger.LogInformation("Finished check max attemps for event");
+            _logger.LogDebug("Finished check max attemps for event");
         }
     }
 
     public async Task<int> SaveEventProccess(string json, EventProcessStatus status = EventProcessStatus.Padding)
     {
-        _logger.LogInformation("Start save event proccess.");
+        _logger.LogDebug("Start save event proccess.");
         try
         {
             string query = @"INSERT INTO PROCCESS_EVENT (CODE_STATUS, JSON)
@@ -83,13 +83,13 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         }
         finally
         {
-            _logger.LogInformation("Finished save event proccess.");
+            _logger.LogDebug("Finished save event proccess.");
         }
     }
 
     public async Task<bool> UpdateEventProccess(int proccess, EventProcessStatus status, string error = "", bool finish = false)
     {
-        _logger.LogInformation("Start update event proccess.");
+        _logger.LogDebug("Start update event proccess.");
         try
         {
             string query = @$"UPDATE PROCCESS_EVENT
@@ -110,13 +110,13 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         }
         finally
         {
-            _logger.LogInformation("Finished update event proccess.");
+            _logger.LogDebug("Finished update event proccess.");
         }
     }
 
     public async Task<string> GetEventProccess(int proccess)
     {
-        _logger.LogInformation("Start gets event proccess.");
+        _logger.LogDebug("Start gets event proccess.");
         try
         {
             string query = @$"SELECT JSONB(JSON)
@@ -133,7 +133,7 @@ public class ProccessEventRepository : BaseRepository, IProccessEventRepository
         }
         finally
         {
-            _logger.LogInformation("Finished gets event proccess.");
+            _logger.LogDebug("Finished gets event proccess.");
         }
     }
 }
