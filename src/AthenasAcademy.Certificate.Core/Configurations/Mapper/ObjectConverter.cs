@@ -15,6 +15,7 @@ public class ObjectConverter : IObjectConverter
                 {
                     config.AddProfile(new ModelToResponseProfile());
                     config.AddProfile(new ModelToArgumentProfile());
+                    config.AddProfile(new RequestToArgumentProfile());
                 }).CreateMapper();
     }
 

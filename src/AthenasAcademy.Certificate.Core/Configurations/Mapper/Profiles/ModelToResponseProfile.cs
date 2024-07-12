@@ -17,8 +17,8 @@ public class ModelToResponseProfile : Profile
             opts => opts.MapFrom(src => src.Workload))
         .ForMember(dest => dest.Utilization, 
             opts => opts.MapFrom(src => src.Utilization))
-        .ForMember(dest => dest.Completion, 
-            opts => opts.MapFrom(src => src.Completion))
+        .ForMember(dest => dest.Conclusion, 
+            opts => opts.MapFrom(src => src.Conclusion))
         .ReverseMap();
 
         CreateMap<FileDetailModel, FileResponse>()
