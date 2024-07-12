@@ -2,7 +2,7 @@
 
 public class CourseRequest
 {
-    public string Name { get; set; }
+    public string Course { get; set; }
     public int Workload {get; set;}
     public List<DisciplineRequest> Disciplines { get; set; }
 }

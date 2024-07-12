@@ -2,8 +2,8 @@
 
 public record DisciplineRequest
 {
-    public string Name { get; set; }
+    public string Discipline { get; set; }
     public int Workload { get; set; }
     public decimal Utilization { get; set; }
-    public DateTime ConclusionDate { get; set; }
+    public DateTime Conclusion { get; set; }
 }
