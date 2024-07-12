@@ -6,7 +6,6 @@ namespace AthenasAcademy.Certificate.Core.Services.Interfaces;
 
 public interface ICertificateService
 {
-    Task<CertificateResponse> Generate(CertificateRequest request);
-    Task<CertificateResponse> Get(string registration, ContentType type);
-    Task ProccessEventGenerateCertificate(CertificateRequest request);
+    Task<CertificateResponse> CreateCertificate(CertificateRequest request);
+    Task<CertificateResponse> GetCertificate(string registration);
 }
