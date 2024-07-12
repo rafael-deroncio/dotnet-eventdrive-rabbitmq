@@ -31,7 +31,7 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
                                     CER.Student_REGISTRATION    StudentRegistration,
                                     CER.COURSE                  Course,
                                     CER.WORKLOAD                Workload,
-                                    CER.COMPLETATION            Completation,
+                                    CER.CONCLUSION              Conclusion,
                                     CER.UTILIZATION             Utilization,
                                     CER.CREATED_AT              CreatedAt,
                                     CER.UPDATED_AT              UpdatedAt,
@@ -42,8 +42,8 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
                                     CEF.SIZE                    Size,
                                     CEF.CREATED_AT              CreatedAt,
                                     CEF.UPDATED_AT              UpdatedAt
-                            FROM CERTIFICATES CER
-                            JOIN CERTIFICATE_FILES CEF 
+                            FROM CERTIFICATE CER
+                            JOIN CERTIFICATE_FILE CEF
                               ON CEF.CODE_CERTIFICATE = CER.CODE_CERTIFICATE
                            WHERE CER.Student_REGISTRATION = @Registration";
 
@@ -90,41 +90,69 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
         }
     }
 
-    public async Task<CertificateModel> SaveCertificate(CertificateArgument argumet)
+    public async Task<CertificateModel> SaveCertificate(CertificateArgument argument)
+    {
+        _logger.LogDebug("Start save certificate structure.");
+
+        using IDbConnection connection = GetConnection();
+        using IDbTransaction transaction = connection.BeginTransaction();
+
+        try
+        {
+            int codeCertificate = await SaveCertificate(argument, transaction);
+
+            argument.Disciplines.ForEach(x => x.CodeCertificate = codeCertificate);
+            await SaveCertificateDisciplines(argument.Disciplines, transaction);
+
+            argument.Files.ForEach(x => x.CodeCertificate = codeCertificate);;
+            await SaveCertificateFile(argument.Files, transaction);
+
+            transaction.Commit();
+
+            return await GetCertificateByRegistration(argument.StudentRegistration);
+        }
+        catch (Exception)
+        {
+            transaction.Rollback();
+            _logger.LogError("Error on save certificate structure.");
+            throw;
+        }
+        finally
+        {
+            _logger.LogDebug("Finished save certificate structure.");
+        }
+    }
+
+    private async Task<int> SaveCertificate(CertificateArgument argument, IDbTransaction transaction)
     {
         _logger.LogDebug("Start save certificate.");
         try
         {
-            string query = @"INSERT INTO CERTIFICATES 
+            string query = @"INSERT INTO CERTIFICATE 
                             (
-                                Student_NAME, 
-                                Student_DOCUMENT, 
-                                Student_REGISTRATION, 
+                                STUDENT_NAME, 
+                                STUDENT_DOCUMENT, 
+                                STUDENT_REGISTRATION, 
                                 COURSE, 
-                                COMPLETATION, 
-                                UTILIZATION
+                                WORKLOAD, 
+                                CONCLUSION,
+                                UTILIZATION,
+                                SIGN
                             ) VALUES
                             (
                                 @StudentName,
                                 @StudentDocument,
                                 @StudentRegistration,
-                                @Course, 
-                                @Completion,
-                                @Utilization
+                                @Course,
+                                @Workload,
+                                @Conclusion,
+                                @Utilization,
+                                @Sign
                             ) RETURNING CODE_CERTIFICATE;";
 
             using IDbConnection connection = GetConnection();
-            using IDbTransaction transaction = connection.BeginTransaction();
+            return await connection.ExecuteScalarAsync<int>(query, argument, transaction);
 
-            int codeCertificate = await connection.ExecuteScalarAsync<int>(query, transaction);
-
-            argumet.FileDetails.ForEach(file => file.CodeCertificate = codeCertificate);
-
-            await SaveCertificateFiles(argumet.FileDetails, codeCertificate, transaction);
-
-            transaction.Commit();
-
-            return await GetCertificateByRegistration(argumet.StudentRegistration);
         }
         catch (Exception exception)
         {
@@ -137,12 +165,47 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
         }
     }
 
-    private async Task SaveCertificateFiles(IEnumerable<FileDetailArgument> arguments, int codeCertificate, IDbTransaction transaction)
+    private async Task SaveCertificateDisciplines(IEnumerable<DisciplineArgument> arguments, IDbTransaction transaction)
+    {
+        _logger.LogDebug("Start save certificate disciplines.");
+        try
+        {
+            string query = @"INSERT INTO CERTIFICATE_DISCIPLINE
+                            (
+                                CODE_CERTIFICATE, 
+                                DISCIPLINE, 
+                                WORKLOAD, 
+                                UTILIZATION, 
+                                CONCLUSION
+                            ) VALUES
+                            (
+                                @CodeCertificate,
+                                @Discipline,
+                                @Workload,
+                                @Utilization, 
+                                @Conclusion
+                            )";
+
+            using IDbConnection connection = GetConnection();
+            await connection.ExecuteAsync(query, arguments, transaction);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError("Error on save certificate disciplines. {0}", exception.Message);
+            throw;
+        }
+        finally
+        {
+            _logger.LogDebug("Finished save certificate disciplines.");
+        }
+    }
+
+    private async Task SaveCertificateFile(List<FileDetailArgument> arguments, IDbTransaction transaction)
     {
         _logger.LogDebug("Start save certificate files.");
         try
         {
-            string query = @"INSERT INTO CERTIFICATE_FILES 
+            string query = @"INSERT INTO CERTIFICATE_FILE
                             (
                                 CODE_CERTIFICATE, 
                                 FILE, 
@@ -159,7 +222,7 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
                             );";
 
             using IDbConnection connection = GetConnection();
-            await connection.ExecuteAsync(query, arguments);
+            await connection.ExecuteAsync(query, arguments, transaction);
         }
         catch (Exception exception)
         {
