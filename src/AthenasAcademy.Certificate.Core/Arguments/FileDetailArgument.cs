@@ -1,6 +1,6 @@
 ﻿namespace AthenasAcademy.Certificate.Core.Arguments;
 
-public record class FileDetailArgument
+public record FileDetailArgument
 {
     public int CodeCertificate { get; set; }
     public string File { get; set; }

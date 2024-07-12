@@ -6,7 +6,8 @@ public record CertificateArgument
     public string StudentDocument { get; set; }
     public string StudentRegistration { get; set; }
     public string Course { get; set; }
-    public DateTime Completion { get; set; }
+    public int Workload { get; set; }
+    public DateTime Conclusion { get; set; }
     public decimal Utilization { get; set; }
     public string Sign { get; set; }
     public List<FileDetailArgument> Files { get; set; }
