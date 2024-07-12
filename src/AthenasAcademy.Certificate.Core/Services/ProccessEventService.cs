@@ -1,8 +1,12 @@
 ﻿using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using AthenasAcademy.Certificate.Core.Arguments;
 using AthenasAcademy.Certificate.Core.Configurations;
+using AthenasAcademy.Certificate.Core.Configurations.Mapper.Interfaces;
+using AthenasAcademy.Certificate.Core.Models;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
+using AthenasAcademy.Certificate.Core.Repositories.Postgres.Interfaces;
 using AthenasAcademy.Certificate.Core.Requests;
 using AthenasAcademy.Certificate.Core.Services.Interfaces;
 using AthenasAcademy.Certificate.Domain.Requests;
@@ -13,49 +17,71 @@ namespace AthenasAcademy.Certificate.Core.Services;
 public class ProccessEventService(
     IOptions<Parameters> options,
     ILogger<CertificateService> logger,
+    IObjectConverter objectConverter,
     IQRCodeService qrcodeService,
     IHtmlTemplateService templateService,
     IPDFService pdfService,
-    IBucketRepository bucketRepository
+    IBucketRepository bucketRepository,
+    ICertificateRepository certificateRepository
 ) : IProccessEventService
 {
     private readonly Parameters _parameters = options.Value;
     private readonly ILogger<CertificateService> _logger = logger;
+    private readonly IObjectConverter _objectConverter = objectConverter;
     private readonly IQRCodeService _qrcodeService = qrcodeService;
     private readonly IHtmlTemplateService _templateService = templateService;
     private readonly IPDFService _pdfService = pdfService;
     private readonly IBucketRepository _bucketRepository = bucketRepository;
+    private readonly ICertificateRepository _certificateRepository = certificateRepository;
 
     public async Task GenerateCertificate(long proccess, CertificateRequest request)
     {
         _logger.LogDebug("Start proccess event for generate certificate.");
         try
         {
+            // Apply roles for calculated properties
+            request.Course.Workload = request.Course.Disciplines.Sum(x => x.Workload);
+            request.Utilization = request.Course.Disciplines.Average(x => x.Utilization);
+
             // Generate SIGN
             string sign = GetSign(proccess);
             string pathQRCode = Path.Combine(_parameters.BucketPathQR, $"{sign}.png");
             string pathKeyPdf = Path.Combine(_parameters.BucketPathPdf, $"{sign}.pdf");
 
             // Generate QRCode
-            using (MemoryStream ms = new(await _qrcodeService.GetQRCode(sign)))
-            {
-                await _bucketRepository.UploadFileAsync(ms, _parameters.BucketName, pathQRCode);
-            }
-
-            // Generate HTML
-            string html = string.Empty;
-            using (StreamReader reader = new(await _bucketRepository.GetFileAsync(_parameters.BucketName, _parameters.BucketKeyTemplate)))
-            {
-                string template = await reader.ReadToEndAsync();
-                CertificateParametersRequest parameters = await GetParametersForCertificateTemlate(request, pathQRCode);
-                html = await _templateService.GetHtml(parameters, template);
-            }
+            await GenerateQRCode(sign, pathQRCode);
 
             // Generate PDF
-            using (MemoryStream ms = new(await _pdfService.ConvertHTMLToPDF(html)))
+            CertificateParametersRequest parameters = await GetParametersForCertificateTemplate(request, pathQRCode);
+            await GeneratePDF(parameters, pathKeyPdf);
+
+            // Mount certificate structure
+            FileDetailModel pdfFile = await _bucketRepository.GetFileDetailAsync(_parameters.BucketName, pathKeyPdf);
+            FileDetailModel qrcFile = await _bucketRepository.GetFileDetailAsync(_parameters.BucketName, pathQRCode);
+
+            CertificateArgument argument = new()
             {
-                await _bucketRepository.UploadFileAsync(ms, _parameters.BucketName, pathKeyPdf);
-            }
+                StudentName = parameters.StudentName,
+                StudentDocument = parameters.StudentDocument,
+                StudentRegistration = parameters.StudentRegistration,
+                Course = parameters.CourseName,
+
+                Sign = sign,
+                Workload = request.Course.Workload,
+                Conclusion = request.Conclusion,
+                Utilization = request.Utilization,
+
+                Files =
+                [
+                    _objectConverter.Map<FileDetailArgument>(pdfFile),
+                    _objectConverter.Map<FileDetailArgument>(qrcFile),
+                ],
+
+                Disciplines = request.Course.Disciplines.Select(_objectConverter.Map<DisciplineArgument>).ToList()
+            };
+
+            // Save certificate structure
+            await _certificateRepository.SaveCertificate(argument);
         }
         catch (Exception exception)
         {
@@ -68,23 +94,45 @@ public class ProccessEventService(
         }
     }
 
-    private async Task<CertificateParametersRequest> GetParametersForCertificateTemlate(CertificateRequest request, string pathQRCode)
+    private async Task GeneratePDF(CertificateParametersRequest parameters, string pathKeyPdf)
+    {
+        using (StreamReader reader = new(await _bucketRepository.GetFileAsync(_parameters.BucketName, _parameters.BucketKeyTemplate)))
+        {
+            string template = await reader.ReadToEndAsync();
+            string html = await _templateService.GetHtml(parameters, template);
+
+            using (MemoryStream ms = new(await _pdfService.ConvertHTMLToPDF(html)))
+            {
+                await _bucketRepository.UploadFileAsync(ms, _parameters.BucketName, pathKeyPdf);
+            }
+        }
+    }
+
+    private async Task GenerateQRCode(string sign, string pathQRCode)
+    {
+        using (MemoryStream ms = new(await _qrcodeService.GetQRCode(sign)))
+        {
+            await _bucketRepository.UploadFileAsync(ms, _parameters.BucketName, pathQRCode);
+        }
+    }
+
+    private async Task<CertificateParametersRequest> GetParametersForCertificateTemplate(CertificateRequest request, string pathQRCode)
         => new CertificateParametersRequest
         {
             StudentName = FormatStrName(request.Student.Name),
             StudentDocument = FormatStudentDocument(request.Student.Document.Type, request.Student.Document.Number),
             StudentRegistration = FormatRegistration(request.Student.Registration),
 
-            CourseName = FormatStrName(request.Course.Name),
+            CourseName = FormatStrName(request.Course.Course),
             CourseWorkload = FormatCourseWorkload(request.Course.Workload),
             CourseUtilization = FormatCourseUtilization(request.Utilization),
-            CourseConclusionDate = FormatDate(request.ConclusionDate),
+            CourseConclusionDate = FormatDate(request.Conclusion),
 
             LogoImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, _parameters.BucketKeyLogo),
             StampImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, _parameters.BucketKeyStamp),
             QRCodeImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, pathQRCode),
 
-            LocationDatetime = FormatLocationDate(request.ConclusionDate)
+            LocationDatetime = FormatLocationDate(request.Conclusion)
         };
 
     private static string GetSign(long proccess)
