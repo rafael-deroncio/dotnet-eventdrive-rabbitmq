@@ -127,11 +127,10 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        byte[] key = Encoding.UTF8.GetBytes(configuration["SSK:Hash"]) ??
-            throw new NullReferenceException("No settings for jwt security key were found.");
-
         JWTSettings settings = configuration.GetSection("JwtSettings").Get<JWTSettings>()
             ?? throw new NullReferenceException("No settings for jwt were found.");
+
+        byte[] key = Encoding.UTF8.GetBytes(settings.SymmetricSecurityKey);
 
         services.AddAuthentication(options =>
         {
