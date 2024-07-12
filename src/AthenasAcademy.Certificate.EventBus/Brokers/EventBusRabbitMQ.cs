@@ -4,10 +4,10 @@ using Autofac;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using AthenasAcademy.Components.EventBus.Brokers.Interfaces;
-using AthenasAcademy.Components.EventBus.Brokers.Constants;
+using AthenasAcademy.Certificate.EventBus.Brokers.Interfaces;
+using AthenasAcademy.Certificate.EventBus.Brokers.Constants;
 
-namespace AthenasAcademy.Components.EventBus.Brokers;
+namespace AthenasAcademy.Certificate.EventBus.Brokers;
 
 public class EventBusRabbitMQ(
     ILogger<EventBusRabbitMQ> logger,
@@ -47,7 +47,7 @@ public class EventBusRabbitMQ(
         }
     }
 
-    public async Task SubscribeAsync<TEvent, TEventHandler>(CancellationToken cancellationToken, int maxCallbacks = 10)
+    public async Task SubscribeAsync<TEvent, TEventHandler>(CancellationToken cancellationToken, int maxAttemps = 10, int maxCallbacks = 10)
         where TEvent : BaseEvent
         where TEventHandler : IEventHandler<TEvent>
     {
@@ -58,21 +58,37 @@ public class EventBusRabbitMQ(
         {
             string exchange = GetExchangeName<TEvent>();
             string queue = GetQueueName<TEvent>();
+            string routingKey = GetRoutingKeyName<TEvent>();
 
             Dictionary<string, object> arguments = await DeclareDeadLetterQueue<TEvent>(channel);
 
             channel.ExchangeDeclare(exchange, RabbitMQConstants.EXCHANGE_TYPE);
             channel.QueueDeclare(queue, true, false, false, arguments);
-            channel.QueueBind(queue, exchange, GetRoutingKeyName<TEvent>());
-
-            AsyncEventingBasicConsumer consumer = new(channel);
-
-            channel.BasicConsume(queue, autoAck: false, consumer);
+            channel.QueueBind(queue, exchange, routingKey);
 
             if (!_subscriptionsManager.HasSubscriptionsForEvent<TEvent>())
                 _subscriptionsManager.AddSubscription<TEvent, TEventHandler>();
 
-            consumer.Received += async (sender, args) => await OnConsumerReceived<TEvent>(sender, args, channel, queue, maxCallbacks);
+            AsyncEventingBasicConsumer consumer = new(channel);
+
+            SemaphoreSlim semaphore = new(initialCount: maxCallbacks > 10 ? 10 : maxCallbacks);
+            consumer.Received += async (sender, args) =>
+            {
+                await semaphore.WaitAsync(cancellationToken);
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await OnConsumerReceived<TEvent>(args, channel, queue, maxAttemps);
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                }, cancellationToken);
+            };
+
+            channel.BasicConsume(queue, autoAck: false, consumer);
 
             try
             {
@@ -121,9 +137,9 @@ public class EventBusRabbitMQ(
     public void Publish<TEvent>(TEvent @event) where TEvent : BaseEvent
         => PublishAsync(@event).Wait();
 
-    public void Subscribe<TEvent, TEventHandler>(CancellationToken cancellation, int maxCallbacks = 10)
+    public void Subscribe<TEvent, TEventHandler>(CancellationToken cancellation, int maxAttemps = 10, int maxCallbacks = 10)
     where TEvent : BaseEvent where TEventHandler : IEventHandler<TEvent>
-        => SubscribeAsync<TEvent, TEventHandler>(cancellation, maxCallbacks).Wait(cancellation);
+        => SubscribeAsync<TEvent, TEventHandler>(cancellation, maxAttemps, maxCallbacks).Wait(cancellation);
 
     public void Unsubscribe<TEvent, TEventHandler>()
     where TEvent : BaseEvent where TEventHandler : IEventHandler<TEvent>
@@ -145,7 +161,7 @@ public class EventBusRabbitMQ(
         return new() { { RabbitMQConstants.X_DLQ_EXCHANGE, exchangeDql } };
     }
 
-    private async Task OnConsumerReceived<TEvent>(object sender, BasicDeliverEventArgs args, IModel channel, string queue, int maxCallbacks) where TEvent : BaseEvent
+    private async Task OnConsumerReceived<TEvent>(BasicDeliverEventArgs args, IModel channel, string queue, int maxAttemps) where TEvent : BaseEvent
     {
         string message = Encoding.UTF8.GetString(args.Body.ToArray());
         TEvent @event = DeserializeEvent<TEvent>(message);
@@ -161,7 +177,7 @@ public class EventBusRabbitMQ(
         {
             _logger.LogError(ex, "Error processing message in queue {Queue}. Attemp {Attemp}", queue, ++@event.RetryCount);
 
-            if (@event.RetryCount < maxCallbacks) await PublishAsync<TEvent>(@event);
+            if (@event.RetryCount < maxAttemps) await PublishAsync<TEvent>(@event);
             else await SendToDeadLetterQueue(channel, @event, args.BasicProperties);
 
             channel.BasicNack(args.DeliveryTag, multiple: false, false);

@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client;
 
-namespace AthenasAcademy.Components.EventBus.Brokers.Interfaces;
+namespace AthenasAcademy.Certificate.EventBus.Brokers.Interfaces;
 
 /// <summary>
 /// Interface for managing a persistent connection to RabbitMQ.

@@ -1,4 +1,4 @@
-﻿namespace AthenasAcademy.Components.EventBus;
+﻿namespace AthenasAcademy.Certificate.EventBus;
 
 /// <summary>
 /// Represents the base class for all events in the EventBus system.

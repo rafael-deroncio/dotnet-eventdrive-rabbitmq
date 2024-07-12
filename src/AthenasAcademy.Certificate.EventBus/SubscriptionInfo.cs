@@ -1,4 +1,4 @@
-﻿namespace AthenasAcademy.Components.EventBus;
+﻿namespace AthenasAcademy.Certificate.EventBus;
 
 /// <summary>
 /// Represents information about an event subscription, including the handler type.

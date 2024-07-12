@@ -1,8 +1,8 @@
-﻿using AthenasAcademy.Components.EventBus.Brokers.Interfaces;
+﻿using AthenasAcademy.Certificate.EventBus.Brokers.Interfaces;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
-namespace AthenasAcademy.Components.EventBus.Brokers;
+namespace AthenasAcademy.Certificate.EventBus.Brokers;
 
 public class RabbitMQPersistentConnection(IConnectionFactory connectionFactory) : IRabbitMQPersistentConnection
 {

@@ -1,4 +1,4 @@
-﻿namespace AthenasAcademy.Components.EventBus;
+﻿namespace AthenasAcademy.Certificate.EventBus;
 
 /// <summary>
 /// Interface that defines the contract for handling events.

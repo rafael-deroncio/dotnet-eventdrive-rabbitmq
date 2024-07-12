@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client;
 
-namespace AthenasAcademy.Components.EventBus.Brokers.Constants;
+namespace AthenasAcademy.Certificate.EventBus.Brokers.Constants;
 
 public record RabbitMQConstants
 {

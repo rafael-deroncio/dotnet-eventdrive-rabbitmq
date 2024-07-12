@@ -1,4 +1,4 @@
-﻿namespace AthenasAcademy.Components.EventBus;
+﻿namespace AthenasAcademy.Certificate.EventBus;
 
 /// <summary>
 /// Interface that defines the contract for the EventBus system, providing methods for publishing and subscribing to events.
@@ -20,9 +20,10 @@ public interface IEventBus
     /// <typeparam name="TEvent">The type of the event.</typeparam>
     /// <typeparam name="TEventHandler">The type of the handler that will process the event.</typeparam>
     /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
-    /// <param name="maxCallbacks">The maximum number of callbacks to be invoked. Defaults to 10.</param>
+    /// <param name="maxAttemps">The maximum number of attemps to be invoked. Defaults to 10.</param>
+    /// <param name="maxCallbacks">The maximum number of callbacks to parallelism. Defaults to 10.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task SubscribeAsync<TEvent, TEventHandler>(CancellationToken cancellationToken, int maxCallbacks = 10)
+    Task SubscribeAsync<TEvent, TEventHandler>(CancellationToken cancellationToken, int maxAttemps = 10, int maxCallbacks = 10)
         where TEvent : BaseEvent
         where TEventHandler : IEventHandler<TEvent>;
 
@@ -51,8 +52,9 @@ public interface IEventBus
     /// <typeparam name="TEvent">The type of the event.</typeparam>
     /// <typeparam name="TEventHandler">The type of the handler that will process the event.</typeparam>
     /// <param name="cancellationToken">A cancellation token to observe while the subscription is active.</param>
-    /// <param name="maxCallbacks">The maximum number of callbacks to be invoked. Defaults to 10.</param>
-    void Subscribe<TEvent, TEventHandler>(CancellationToken cancellationToken, int maxCallbacks = 10)
+    /// <param name="maxAttemps">The maximum number of attemps to be invoked. Defaults to 10.</param>
+    /// <param name="maxCallbacks">The maximum number of callbacks to parallelism. Defaults to 10.</param>
+    void Subscribe<TEvent, TEventHandler>(CancellationToken cancellationToken, int maxAttemps = 10, int maxCallbacks = 10)
         where TEvent : BaseEvent
         where TEventHandler : IEventHandler<TEvent>;
 

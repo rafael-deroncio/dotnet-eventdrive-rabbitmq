@@ -1,4 +1,4 @@
-﻿namespace AthenasAcademy.Components.EventBus;
+﻿namespace AthenasAcademy.Certificate.EventBus;
 
 public class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptionsManager
 {

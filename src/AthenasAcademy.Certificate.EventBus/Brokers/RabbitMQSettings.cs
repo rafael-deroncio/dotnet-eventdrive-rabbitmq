@@ -1,4 +1,4 @@
-﻿namespace AthenasAcademy.Components.EventBus.Brokers;
+﻿namespace AthenasAcademy.Certificate.EventBus.Brokers;
 
 public class RabbitMQSettings
 {
