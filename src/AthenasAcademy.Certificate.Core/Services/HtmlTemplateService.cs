@@ -21,7 +21,7 @@ public class HtmlTemplateService : IHtmlTemplateService
         {
             string name = property.Name;
             object value = property.GetValue(obj)?.ToString() ?? string.Empty;
-            dict.Add($"${name.ToUpper()}", $"{value}");
+            dict.Add("{{" + $"{name.ToUpper()}" + "}}", $"{value}");
         }
 
         return dict;
