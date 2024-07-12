@@ -5,19 +5,21 @@ using AthenasAcademy.Certificate.Core.Events;
 using AthenasAcademy.Certificate.Core.Repositories.Postgres.Interfaces;
 using AthenasAcademy.Certificate.Core.Services.Interfaces;
 using AthenasAcademy.Certificate.Domain.Requests;
-using AthenasAcademy.Components.EventBus;
+using AthenasAcademy.Certificate.EventBus;
 using Microsoft.Extensions.Options;
 
 namespace AthenasAcademy.Certificate.Handling.Handlers;
 
 public class CertificateEventHandler(
+    ILogger<CertificateEventHandler> logger,
     IOptions<Parameters> options,
-    ICertificateService certificateService,
+    IProccessEventService proccessEventService,
     IProccessEventRepository proccessEventRepository
     ) : IEventHandler<CertificateEvent>
 {
+    private readonly ILogger<CertificateEventHandler> _logger = logger;
     private readonly Parameters _parameters = options.Value;
-    private readonly ICertificateService _certificateService = certificateService;
+    private readonly IProccessEventService _proccessEventService = proccessEventService;
     private readonly IProccessEventRepository _proccessEventRepository = proccessEventRepository;
 
 
@@ -25,15 +27,20 @@ public class CertificateEventHandler(
     {
         if (!await _proccessEventRepository.EventInProccess(@event.CodeEventProccess))
         {
+            _logger.LogInformation("Start proccess {ProccessNumber} event {EventName} to generate certificate.", @event.CodeEventProccess, nameof(CertificateEvent));
+
             try
             {
-                await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.OnProccess);
+                using (_logger.BeginScope(GetScopeLogger(@event)))
+                {
+                    await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.OnProccess);
 
-                string json = await _proccessEventRepository.GetEventProccess(@event.CodeEventProccess);
-                CertificateRequest request = JsonSerializer.Deserialize<CertificateRequest>(@json);
-                await _certificateService.ProccessEventGenerateCertificate(request);
+                    string json = await _proccessEventRepository.GetEventProccess(@event.CodeEventProccess);
+                    CertificateRequest request = JsonSerializer.Deserialize<CertificateRequest>(json);
+                    await _proccessEventService.GenerateCertificate(@event.CodeEventProccess, request);
 
-                await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Success);
+                    await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Success);
+                }
             }
             catch (Exception ex)
             {
@@ -42,6 +49,10 @@ public class CertificateEventHandler(
                 else
                     await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Error, ex.Message, finish: true);
                 throw;
+            }
+            finally
+            {
+                _logger.LogInformation("Finished proccess '{ProccessNumber}' event '{EventName}'.", @event.CodeEventProccess, nameof(CertificateEvent));
             }
         }
         else
@@ -54,7 +65,7 @@ public class CertificateEventHandler(
         return new Dictionary<string, object>
         {
             ["GuidEventProccess"] = @event.Id,
-            ["ProccessEventCode"] = @event.CodeEventProccess
+            ["CodeEventProccess"] = @event.CodeEventProccess
         };
     }
 }

@@ -1,7 +1,7 @@
 using AthenasAcademy.Certificate.Core.Configurations;
 using AthenasAcademy.Certificate.Core.Events;
 using AthenasAcademy.Certificate.Handling.Handlers;
-using AthenasAcademy.Components.EventBus;
+using AthenasAcademy.Certificate.EventBus;
 using Microsoft.Extensions.Options;
 
 namespace AthenasAcademy.Certificate.Handling.Services;

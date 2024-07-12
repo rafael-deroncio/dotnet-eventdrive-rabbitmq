@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../AthenasAcademy.Certificate.EventBus/AthenasAcademy.Certificate.EventBus.csproj" />
     <ProjectReference Include="..\AthenasAcademy.Certificate.Core\AthenasAcademy.Certificate.Core.csproj" />
-    <ProjectReference Include="..\AthenasAcademy.Components.EventBus\AthenasAcademy.Components.EventBus.csproj" />
   </ItemGroup>
 
 </Project>
