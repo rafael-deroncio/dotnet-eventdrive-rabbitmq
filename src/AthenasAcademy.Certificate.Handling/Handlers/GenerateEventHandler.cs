@@ -39,7 +39,7 @@ public class CertificateEventHandler(
                     CertificateRequest request = JsonSerializer.Deserialize<CertificateRequest>(json);
                     await _proccessEventService.GenerateCertificate(@event.CodeEventProccess, request);
 
-                    await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Success);
+                    await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Success, finish: true);
                 }
             }
             catch (Exception ex)
