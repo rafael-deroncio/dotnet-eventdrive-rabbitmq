@@ -5,7 +5,7 @@ namespace AthenasAcademy.Certificate.Core.Services;
 
 public class HtmlTemplateService : IHtmlTemplateService
 {
-    public async Task<string> GetHtml(object obj, string template)
+    public async Task<string> ParseParametersToTemplate(object obj, string template)
     {
         Dictionary<string, string> parameters = ConvertToDictParamters(obj);
         string html = ParseParametersToTemplate(parameters, template);

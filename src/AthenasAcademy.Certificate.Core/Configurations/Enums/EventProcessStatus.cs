@@ -7,8 +7,8 @@ public enum EventProcessStatus
     [Description("Padding")]
     Padding = 1,
 
-    [Description("OnProccess")]
-    OnProccess = 2,
+    [Description("OnProcess")]
+    OnProcess = 2,
 
     [Description("Success")]
     Success = 3,

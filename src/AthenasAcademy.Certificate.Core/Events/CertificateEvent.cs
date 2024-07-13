@@ -4,5 +4,5 @@ namespace AthenasAcademy.Certificate.Core.Events;
 
 public class CertificateEvent : BaseEvent
 {
-    public int CodeEventProccess { get; set; }
+    public int CodeEventProcess { get; set; }
 }

@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 
 namespace AthenasAcademy.Certificate.Core.Services;
 
-public class ProccessEventService(
+public class ProcessEventService(
     IOptions<Parameters> options,
     ILogger<CertificateService> logger,
     IObjectConverter objectConverter,
@@ -23,7 +23,7 @@ public class ProccessEventService(
     IPDFService pdfService,
     IBucketRepository bucketRepository,
     ICertificateRepository certificateRepository
-) : IProccessEventService
+) : IProcessEventService
 {
     private readonly Parameters _parameters = options.Value;
     private readonly ILogger<CertificateService> _logger = logger;
@@ -34,9 +34,9 @@ public class ProccessEventService(
     private readonly IBucketRepository _bucketRepository = bucketRepository;
     private readonly ICertificateRepository _certificateRepository = certificateRepository;
 
-    public async Task GenerateCertificate(long proccess, CertificateRequest request)
+    public async Task GenerateCertificate(long process, CertificateRequest request)
     {
-        _logger.LogDebug("Start proccess event for generate certificate.");
+        _logger.LogDebug("Start process event for generate certificate.");
         try
         {
             // Apply roles for calculated properties
@@ -44,7 +44,7 @@ public class ProccessEventService(
             request.Utilization = request.Course.Disciplines.Average(x => x.Utilization);
 
             // Generate SIGN
-            string sign = GetSign(proccess);
+            string sign = GetSign(process);
             string pathQRCode = Path.Combine(_parameters.BucketPathQR, $"{sign}.png");
             string pathKeyPdf = Path.Combine(_parameters.BucketPathPdf, $"{sign}.pdf");
 
@@ -85,12 +85,12 @@ public class ProccessEventService(
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "Error on proccess event for generate certificate.");
+            _logger.LogError(exception, "Error on process event for generate certificate.");
             throw;
         }
         finally
         {
-            _logger.LogDebug("Finished proccess event for generate certificate.");
+            _logger.LogDebug("Finished process event for generate certificate.");
         }
     }
 
@@ -99,7 +99,7 @@ public class ProccessEventService(
         using (StreamReader reader = new(await _bucketRepository.GetFileAsync(_parameters.BucketName, _parameters.BucketKeyTemplate)))
         {
             string template = await reader.ReadToEndAsync();
-            string html = await _templateService.GetHtml(parameters, template);
+            string html = await _templateService.ParseParametersToTemplate(parameters, template);
 
             using (MemoryStream ms = new(await _pdfService.ConvertHTMLToPDF(html)))
             {
@@ -135,9 +135,9 @@ public class ProccessEventService(
             LocationDatetime = FormatLocationDate(request.Conclusion)
         };
 
-    private static string GetSign(long proccess)
+    private static string GetSign(long process)
     {
-        byte[] bytes = Encoding.UTF8.GetBytes($"{proccess}{Guid.NewGuid()}");
+        byte[] bytes = Encoding.UTF8.GetBytes($"{process}{Guid.NewGuid()}");
         using SHA256 sha256 = SHA256.Create();
         byte[] hashBytes = sha256.ComputeHash(bytes);
         return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();

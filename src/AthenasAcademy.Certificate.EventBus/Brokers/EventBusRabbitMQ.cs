@@ -170,7 +170,7 @@ public class EventBusRabbitMQ(
         {
             _logger.LogDebug("Starting consumption of the {0} for message {1}.", queue, @event.Id);
 
-            await ProccessEvent(@event).WaitAsync(CancellationToken.None);
+            await ProcessEvent(@event).WaitAsync(CancellationToken.None);
             channel.BasicAck(args.DeliveryTag, false);
         }
         catch (Exception ex)
@@ -202,7 +202,7 @@ public class EventBusRabbitMQ(
         await Task.CompletedTask;
     }
 
-    private async Task ProccessEvent<TEvent>(TEvent @event)
+    private async Task ProcessEvent<TEvent>(TEvent @event)
     {
         string eventName = _subscriptionsManager.GetEventKey<TEvent>();
 

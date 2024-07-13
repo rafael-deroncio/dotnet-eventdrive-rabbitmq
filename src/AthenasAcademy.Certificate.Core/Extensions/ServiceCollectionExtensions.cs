@@ -40,14 +40,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IHtmlTemplateService, HtmlTemplateService>();
         services.AddScoped<IQRCodeService, QRCodeService>();
         services.AddScoped<IPDFService, PDFService>();
-        services.AddScoped<IProccessEventService, ProccessEventService>();
+        services.AddScoped<IProcessEventService, ProcessEventService>();
         return services;
     }
 
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddSingleton<ICertificateRepository, CertificateRepository>();
-        services.AddSingleton<IProccessEventRepository, ProccessEventRepository>();
+        services.AddSingleton<IProcessEventRepository, ProcessEventRepository>();
         return services;
     }
 

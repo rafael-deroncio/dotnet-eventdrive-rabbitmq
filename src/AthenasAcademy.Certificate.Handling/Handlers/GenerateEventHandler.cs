@@ -13,50 +13,50 @@ namespace AthenasAcademy.Certificate.Handling.Handlers;
 public class CertificateEventHandler(
     ILogger<CertificateEventHandler> logger,
     IOptions<Parameters> options,
-    IProccessEventService proccessEventService,
-    IProccessEventRepository proccessEventRepository
+    IProcessEventService proccessEventService,
+    IProcessEventRepository proccessEventRepository
     ) : IEventHandler<CertificateEvent>
 {
     private readonly ILogger<CertificateEventHandler> _logger = logger;
     private readonly Parameters _parameters = options.Value;
-    private readonly IProccessEventService _proccessEventService = proccessEventService;
-    private readonly IProccessEventRepository _proccessEventRepository = proccessEventRepository;
+    private readonly IProcessEventService _proccessEventService = proccessEventService;
+    private readonly IProcessEventRepository _proccessEventRepository = proccessEventRepository;
 
 
     public async Task Handle(CertificateEvent @event)
     {
-        if (!await _proccessEventRepository.EventInProccess(@event.CodeEventProccess))
+        if (!await _proccessEventRepository.EventInProcess(@event.CodeEventProcess))
         {
-            _logger.LogInformation("Start proccess {ProccessNumber} event {EventName} to generate certificate.", @event.CodeEventProccess, nameof(CertificateEvent));
+            _logger.LogInformation("Start process {ProcessNumber} event {EventName} to generate certificate.", @event.CodeEventProcess, nameof(CertificateEvent));
 
             try
             {
                 using (_logger.BeginScope(GetScopeLogger(@event)))
                 {
-                    await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.OnProccess);
+                    await _proccessEventRepository.UpdateEventProcess(@event.CodeEventProcess, EventProcessStatus.OnProcess);
 
-                    string json = await _proccessEventRepository.GetEventProccess(@event.CodeEventProccess);
+                    string json = await _proccessEventRepository.GetEventProcess(@event.CodeEventProcess);
                     CertificateRequest request = JsonSerializer.Deserialize<CertificateRequest>(json);
-                    await _proccessEventService.GenerateCertificate(@event.CodeEventProccess, request);
+                    await _proccessEventService.GenerateCertificate(@event.CodeEventProcess, request);
 
-                    await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Success, finish: true);
+                    await _proccessEventRepository.UpdateEventProcess(@event.CodeEventProcess, EventProcessStatus.Success, finish: true);
                 }
             }
             catch (Exception ex)
             {
-                if (!await _proccessEventRepository.MaximumAttemptsReached(@event.CodeEventProccess, _parameters.EventMaxAttemps))
-                    await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Padding, ex.Message);
+                if (!await _proccessEventRepository.MaximumAttemptsReached(@event.CodeEventProcess, _parameters.EventMaxAttemps))
+                    await _proccessEventRepository.UpdateEventProcess(@event.CodeEventProcess, EventProcessStatus.Padding, ex.Message);
                 else
-                    await _proccessEventRepository.UpdateEventProccess(@event.CodeEventProccess, EventProcessStatus.Error, ex.Message, finish: true);
+                    await _proccessEventRepository.UpdateEventProcess(@event.CodeEventProcess, EventProcessStatus.Error, ex.Message, finish: true);
                 throw;
             }
             finally
             {
-                _logger.LogInformation("Finished proccess '{ProccessNumber}' event '{EventName}'.", @event.CodeEventProccess, nameof(CertificateEvent));
+                _logger.LogInformation("Finished process '{ProcessNumber}' event '{EventName}'.", @event.CodeEventProcess, nameof(CertificateEvent));
             }
         }
         else
-            throw new Exception("Event 'CertificateEvent' in proccess.");
+            throw new Exception("Event 'CertificateEvent' in process.");
     }
 
     private static Dictionary<string, object> GetScopeLogger<TEvent>(TEvent @event)
@@ -64,8 +64,8 @@ public class CertificateEventHandler(
     {
         return new Dictionary<string, object>
         {
-            ["GuidEventProccess"] = @event.Id,
-            ["CodeEventProccess"] = @event.CodeEventProccess
+            ["GuidEventProcess"] = @event.Id,
+            ["CodeEventProcess"] = @event.CodeEventProcess
         };
     }
 }
