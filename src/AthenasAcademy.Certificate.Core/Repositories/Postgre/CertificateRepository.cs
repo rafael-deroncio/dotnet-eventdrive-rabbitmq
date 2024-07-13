@@ -90,7 +90,7 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
         }
     }
 
-    public async Task<CertificateModel> SaveCertificate(CertificateArgument argument)
+    public async Task SaveCertificate(CertificateArgument argument)
     {
         _logger.LogDebug("Start save certificate structure.");
 
@@ -108,8 +108,6 @@ public class CertificateRepository : BaseRepository, ICertificateRepository
             await SaveCertificateFile(argument.Files, transaction);
 
             transaction.Commit();
-
-            return await GetCertificateByRegistration(argument.StudentRegistration);
         }
         catch (Exception)
         {

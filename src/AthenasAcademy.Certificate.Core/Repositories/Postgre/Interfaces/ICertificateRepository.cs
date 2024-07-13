@@ -5,6 +5,6 @@ namespace AthenasAcademy.Certificate.Core.Repositories.Postgres.Interfaces;
 
 public interface ICertificateRepository
 {
-    Task<CertificateModel> SaveCertificate(CertificateArgument argumet);
+    Task SaveCertificate(CertificateArgument argumet);
     Task<CertificateModel> GetCertificateByRegistration(string registration);
 }
