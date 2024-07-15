@@ -1,4 +1,7 @@
 ﻿using System.Globalization;
+using System.Net;
+using System.Text.RegularExpressions;
+using AthenasAcademy.Certificate.Core.Exceptions;
 
 namespace AthenasAcademy.Certificate.Core.Helpers;
 
@@ -52,4 +55,50 @@ public static class StringHelper
     /// </example>
     public static string FormatStudentDocument(string type, string document)
         => $"{type} - {document.Replace(" ", string.Empty).Trim().ToUpper()}";
+
+    /// <summary>
+    /// Validates a string for common SQL injection patterns and throws an exception if any are found.
+    /// </summary>
+    /// <param name="input">The input string to validate.</param>
+    /// <exception cref="ArgumentException">Thrown when the input string contains potential SQL injection patterns.</exception>
+    /// <example>
+    /// <code>
+    /// try
+    /// {
+    ///     StringHelper.ValidateSqlString("SELECT * FROM users WHERE id = 1");
+    /// }
+    /// catch (ArgumentException ex)
+    /// {
+    ///     Console.WriteLine(ex.Message); // Output: "SQL injection pattern detected in input string."
+    /// }
+    /// </code>
+    /// </example>
+    public static bool CheckSQLInjection(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            throw new BaseException(
+                title: "Certificate Operation",
+                message: "Certificate operation failed. Input string cannot be null or empty.",
+                HttpStatusCode.BadRequest);
+
+        // Common SQL injection patterns
+        string[] sqlInjectionPatterns = {
+                @"(\%27)|(\')|(\-\-)|(\%23)|(#)", // SQL meta-characters
+                @"(\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b)", // SQL keywords
+                @"(\bDROP\b|\bCREATE\b|\bALTER\b|\bTRUNCATE\b)", // DDL keywords
+                @"(\bEXEC\b|\bEXECUTE\b|\bDECLARE\b|\bXP_)"}; // SQL exec commands
+
+        foreach (var pattern in sqlInjectionPatterns)
+        {
+            if (Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase))
+            {
+                throw new BaseException(
+                    title: "Certificate Operation",
+                    message: "Certificate operation failed due to security concerns.",
+                    HttpStatusCode.BadRequest);
+            }
+        }
+
+        return true;
+    }
 }

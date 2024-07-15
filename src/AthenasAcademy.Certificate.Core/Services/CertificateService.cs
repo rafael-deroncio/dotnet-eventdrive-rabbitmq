@@ -4,6 +4,7 @@ using AthenasAcademy.Certificate.Core.Configurations;
 using AthenasAcademy.Certificate.Core.Configurations.Mapper.Interfaces;
 using AthenasAcademy.Certificate.Core.Events;
 using AthenasAcademy.Certificate.Core.Exceptions;
+using AthenasAcademy.Certificate.Core.Helpers;
 using AthenasAcademy.Certificate.Core.Models;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
 using AthenasAcademy.Certificate.Core.Repositories.Postgres.Interfaces;
@@ -75,13 +76,22 @@ public class CertificateService(
         }
     }
 
-    public Task<CertificateResponse> GetCertificate(string registration)
+    public async Task<CertificateResponse> GetCertificate(string registration)
     {
         _logger.LogDebug("Start process request for get certificate with registration {0}.", registration);
         try
         {
-            throw new NotImplementedException();
+            StringHelper.CheckSQLInjection(registration);
+
+            CertificateModel certificate = await _certificateRepository.GetCertificateByRegistration(registration) ??
+                throw new CertificateException(
+                    title: "Get Certificate",
+                    message: string.Format("Certificate with register number {0} not found or in process.", registration),
+                    HttpStatusCode.OK);
+
+            return _mapper.Map<CertificateResponse>(certificate);
         }
+        catch (BaseException) { throw; }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Error on process request for get certificate with registration {0}.", registration);
