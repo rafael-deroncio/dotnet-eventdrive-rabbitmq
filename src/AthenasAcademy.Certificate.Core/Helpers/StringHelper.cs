@@ -29,7 +29,7 @@ public static class StringHelper
     /// <param name="mask">The mask to determine the desired length of the registration string. Default is "0000000000".</param>
     /// <returns>The formatted registration string.</returns>
     /// <example>
-    /// Input: text: "abc123", mask: "0000000000";
+    /// Input: registration: "abc123", mask: "0000000000"
     /// Output: "00000ABC123"
     /// </example>
     public static string FormatRegistration(string registration, string mask = "0000000000")
@@ -45,7 +45,7 @@ public static class StringHelper
     /// <param name="document">The document number to be formatted.</param>
     /// <returns>The formatted student document string in the format "type - document".</returns>
     /// <example>
-    /// Input: type:"ID", document:" 123 456 789 ";
+    /// Input: type:"ID", document:" 123 456 789 "
     /// Output: "ID - 123456789"
     /// </example>
     public static string FormatStudentDocument(string type, string document)
