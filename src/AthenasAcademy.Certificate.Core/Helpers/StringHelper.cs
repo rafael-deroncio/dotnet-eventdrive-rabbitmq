@@ -1,4 +1,6 @@
-﻿namespace AthenasAcademy.Certificate.Core.Helpers;
+﻿using System.Globalization;
+
+namespace AthenasAcademy.Certificate.Core.Helpers;
 
 
 /// <summary>

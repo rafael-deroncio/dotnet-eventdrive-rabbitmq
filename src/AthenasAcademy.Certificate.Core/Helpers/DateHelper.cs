@@ -1,4 +1,6 @@
-﻿namespace AthenasAcademy.Certificate.Core.Helpers;
+﻿using System.Globalization;
+
+namespace AthenasAcademy.Certificate.Core.Helpers;
 
     /// <summary>
     /// The DateHelper class provides static helper methods for formatting date values used in the Athenas Academy application.

@@ -1,9 +1,9 @@
-﻿using System.Globalization;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using AthenasAcademy.Certificate.Core.Arguments;
 using AthenasAcademy.Certificate.Core.Configurations;
 using AthenasAcademy.Certificate.Core.Configurations.Mapper.Interfaces;
+using AthenasAcademy.Certificate.Core.Helpers;
 using AthenasAcademy.Certificate.Core.Models;
 using AthenasAcademy.Certificate.Core.Repositories.Bucket.Interfaces;
 using AthenasAcademy.Certificate.Core.Repositories.Postgres.Interfaces;
@@ -119,20 +119,20 @@ public class ProcessEventService(
     private async Task<CertificateParametersRequest> GetParametersForCertificateTemplate(CertificateRequest request, string pathQRCode)
         => new CertificateParametersRequest
         {
-            StudentName = FormatStrName(request.Student.Name),
-            StudentDocument = FormatStudentDocument(request.Student.Document.Type, request.Student.Document.Number),
-            StudentRegistration = FormatRegistration(request.Student.Registration),
+            StudentName = StringHelper.FormatName(request.Student.Name),
+            StudentDocument = StringHelper.FormatStudentDocument(request.Student.Document.Type, request.Student.Document.Number),
+            StudentRegistration = StringHelper.FormatRegistration(request.Student.Registration),
 
-            CourseName = FormatStrName(request.Course.Course),
-            CourseWorkload = FormatCourseWorkload(request.Course.Workload),
-            CourseUtilization = FormatCourseUtilization(request.Utilization),
-            CourseConclusionDate = FormatDate(request.Conclusion),
+            CourseName = StringHelper.FormatName(request.Course.Course),
+            CourseWorkload = IntegerHelper.FormatCourseWorkload(request.Course.Workload),
+            CourseUtilization = DecimalHelper.FormatCourseUtilization(request.Utilization),
+            CourseConclusionDate = DateHelper.FormatDate(request.Conclusion),
 
             LogoImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, _parameters.BucketKeyLogo),
             StampImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, _parameters.BucketKeyStamp),
             QRCodeImageLink = await _bucketRepository.GetDownloadLinkAsync(_parameters.BucketName, pathQRCode),
 
-            LocationDatetime = FormatLocationDate(request.Conclusion)
+            LocationDatetime = DateHelper.FormatLocationDate(request.Conclusion)
         };
 
     private static string GetSign(long process)
@@ -142,31 +142,4 @@ public class ProcessEventService(
         byte[] hashBytes = sha256.ComputeHash(bytes);
         return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
     }
-
-    private static string FormatStrName(string str)
-    {
-        string formated = string.Join(" ", str.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                .Select(s => s.Trim())).ToLower();
-        return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(formated);
-    }
-
-    private static string FormatRegistration(string registration, string mask = "0000000000")
-        => registration.Trim().Length > mask.Length ?
-            registration.ToUpper().Trim() :
-            registration.ToUpper().Trim().PadLeft(mask.Length, '0');
-
-    private static string FormatStudentDocument(string type, string document)
-        => $"{type} - {document.Replace(" ", string.Empty).Trim().ToUpper()}";
-
-    private static string FormatCourseWorkload(int workload)
-        => $"{workload}h";
-
-    private static string FormatCourseUtilization(decimal utilization)
-        => $"{(int)Math.Round(utilization)}%";
-
-    private static string FormatDate(DateTime date)
-        => date.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("en-US"));
-
-    private static string FormatLocationDate(DateTime date)
-        => $"São Paulo - Brazil, {FormatDate(date)}";
 }
