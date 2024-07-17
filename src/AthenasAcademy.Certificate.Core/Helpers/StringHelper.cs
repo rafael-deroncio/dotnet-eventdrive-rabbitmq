@@ -22,7 +22,7 @@ public static class StringHelper
     /// </example>
     public static string FormatName(string str)
         => CultureInfo.CurrentCulture.TextInfo.ToTitleCase(
-                string.Join(" ", str.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+                string.Join(" ", str.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                                     .Select(s => s.Trim())).ToLower()
             );
 
