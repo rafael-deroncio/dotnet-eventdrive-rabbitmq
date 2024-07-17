@@ -1,33 +1,32 @@
 # AthenasAcademy - Certificate
 
-## 1. Entendimento Geral do Projeto
+Projeto desenvolvido em c# com .net core 8, para atestar as abilidades dessas tecnoligias e conceitos de SOLID, Clean Code, técnicas de escalabilidade, performance de código e arquitetura de software.
 
-O projeto **AthenasAcademy.Certificate** é uma solução completa para gerenciamento de certificados acadêmicos da fictícia *Athenas Academy*. Ele oferece uma API RESTful que atua como ponto de entrada para a criação e recuperação de certificados, Arquitetura orientada a eventos com integração em serviços de mensageria, armazenamento local com a possibilidade de expansão para a nuvem, além de testes automatizados para garantir a qualidade do software.
+O Projeto consiste é uma solução completa para gerenciamento de certificados acadêmicos da fictícia *Athenas Academy*. Ele oferece uma API RESTful que atua como ponto de entrada para a criação e recuperação de certificados, Arquitetura orientada a eventos com integração em serviços de mensageria, armazenamento local com a possibilidade de expansão para a nuvem, além de testes automatizados para garantir a qualidade do software.
 
-## 2. Tecnologias
+## 1. Tecnologias
 
-
-### 2.1 Docker
+### 1.1 Docker
 
 Docker é utilizado para containerizar os diferentes serviços da aplicação, facilitando o desenvolvimento, a distribuição e a execução em diversos ambientes.
 
-#### 2.1.1 Postgres
+#### 1.1.1 Postgres
 
 Postgres é o banco de dados utilizado pelo projeto para armazenar os dados de certificados e para armazenar processos dos eventos de forma relacional.
 
-#### 2.1.2 MinIO
+#### 1.1.2 MinIO
 
 MinIO é um serviço de armazenamento de objetos compatível com S3 da AWS, utilizado para armazenar arquivos de certificados e outros documentos.
 
-#### 2.1.3 RabbitMQ
+#### 1.1.3 RabbitMQ
 
 RabbitMQ é uma plataforma de mensageria utilizada para comunicação assíncrona entre os serviços do projeto.
 
-## 3. Wkhtmltopdf
+## 2. Wkhtmltopdf
 
 Wkhtmltopdf é uma ferramenta de linha de comando utilizada para converter HTML em PDF, essencial para a geração de certificados em formato PDF.
 
-### 3.1 Wkhtmltopdf - Linux
+### 2.1 Wkhtmltopdf - Linux
 
 Para instalar o Wkhtmltopdf no Linux, siga os passos abaixo:
 
@@ -47,23 +46,25 @@ Para instalar o Wkhtmltopdf no Windows, siga os passos abaixo:
 
 ### 4.1 Core
 
-O projeto **AthenasAcademy.Certificate.Core** contém a lógica de negócios e os serviços principais utilizados pela aplicação.
+O projeto **AthenasAcademy.Certificate.Core** contém a lógica de negócios e os serviços principais utilizados pela aplicação, bem como os repositórios para acesso aos dados externos.
 
 ### 4.2 EventBus
 
-O projeto **AthenasAcademy.Certificate.EventBus** gerencia a comunicação entre os serviços através do RabbitMQ.
+O projeto **AthenasAcademy.Certificate.EventBus** é um componente abstrato para o aplicação da arquitetura orientada a eventos.
+Nesse projeto o boker escolhido foi o RabbitMQ.
 
 ### 4.3 API
 
-O projeto **AthenasAcademy.Certificate.API** expõe os endpoints RESTful para interação com os serviços de certificados.
+O projeto **AthenasAcademy.Certificate.API** expõe os endpoints RESTful para interação com os serviços de certificados. 
+O mesmo já possui uma pré implementação para o uso de autenticação e autorização por meio de JWT.
 
 ### 4.4 Handling
 
-O projeto **AthenasAcademy.Certificate.Handling** é responsável pelo tratamento de exceções e gerenciamento de erros da aplicação.
+O projeto **AthenasAcademy.Certificate.Handling** é responsável por orquestrar os eventos disponíveis no broker e manusealos da melhor forma possíve, utilizando gerenciadores de inscrição, programação paralela e trabalhos em segundo plano.
 
 ### 4.5 Domain
 
-O projeto **AthenasAcademy.Certificate.Domain** contém as entidades e modelos de dados utilizados pela aplicação.
+O projeto **AthenasAcademy.Certificate.Domain** contém as entidades e modelos de dados utilizados no dominio da aplicação, como por exemplo, contratos de requisição e resposta.
 
 ### 4.6 Test
 
@@ -77,24 +78,6 @@ O Docker Compose é utilizado para orquestrar os diferentes serviços em contain
 
 ### 5.2 MinIO
 
-
-```yaml
-  minio:
-    image: minio/minio
-    container_name: file-manager
-    environment:
-      MINIO_ROOT_USER: <YOUR_USERNAME>
-      MINIO_ROOT_PASSWORD: <YOUR_PASSWORD>
-      MINIO_HTTP_TRACE: "off"
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio:/data
-    ports:
-      - "9000:9000" # Client
-      - "9001:9001" # UI
-```
-
-#### Detalhes da Configuração
 - **Imagem**: `minio/minio`
 - **Nome do Contêiner**: `file-manager`
 - **Variáveis de Ambiente**:
@@ -110,22 +93,6 @@ O Docker Compose é utilizado para orquestrar os diferentes serviços em contain
 
 ### 5.3 Postgres
 
-```yaml
-  postgres:
-    image: postgres:latest
-    container_name: db-certificate
-    environment:
-      POSTGRES_DB: dbcertificate
-      POSTGRES_USER: <YOUR_USERNAME>
-      POSTGRES_PASSWORD: <YOUR_PASSWORD>
-    volumes:
-      - postgres:/data
-      - ./certificate-create.sql:/docker-entrypoint-initdb.d/certificate-create.sql
-    ports:
-      - "5433:5432" # Client
-```
-
-#### Detalhes da Configuração
 - **Imagem**: `postgres:latest`
 - **Nome do Contêiner**: `db-certificate`
 - **Variáveis de Ambiente**:
@@ -140,26 +107,6 @@ O Docker Compose é utilizado para orquestrar os diferentes serviços em contain
 
 ### 5.4 RabbitMQ
 
-```yaml
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: event-bus
-    environment:
-      RABBITMQ_DEFAULT_USER: <YOUR_USERNAME>
-      RABBITMQ_DEFAULT_PASS: <YOUR_PASSWORD>
-      RABBITMQ_LOAD_DEFINITIONS: /etc/rabbitmq/definitions.json
-    volumes:
-      - rabbitmq:/data
-      - ./definitions.json:/etc/rabbitmq/definitions.json
-      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-    command: 
-      ["sh", "-c", "rabbitmq-plugins enable rabbitmq_management rabbitmq_shovel rabbitmq_shovel_management && rabbitmq-server"]
-    ports:
-      - "5672:5672" # Client
-      - "15672:15672" # UI
-```
-
-#### Detalhes da Configuração
 - **Imagem**: `rabbitmq:3-management`
 - **Nome do Contêiner**: `event-bus`
 - **Variáveis de Ambiente**:
@@ -207,3 +154,171 @@ O Docker Compose é utilizado para orquestrar os diferentes serviços em contain
    - Define permissões de execução para o script `wkhtmltopdf.sh`.
    - Cria um link simbólico `/usr/local/bin/wkhtmltopdf` para o script, permitindo que seja acessível globalmente.
    - Cria um link simbólico `/usr/lib/gdiplus.dll` apontando para `/usr/lib/libgdiplus.so` para compatibilidade com algumas dependências.
+
+
+## 6. Initialization
+
+To start the project, follow these steps:
+
+1. **Start the Docker Containers:**
+
+   Ensure your Docker containers are up and running. Use the following command to start the containers defined in your Docker Compose file:
+
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Run the API Project:**
+
+   Navigate to the API project directory and run the project using the following commands:
+
+   ```bash
+   cd ./AthenasAcademy.Certificate.API
+   dotnet run
+   ```
+
+3. **Run the Handling Project:**
+
+   Open a new terminal window, navigate to the Handling project directory, and run the project:
+
+   ```bash
+   cd path/to/AthenasAcademy.Certificate.Handling
+   dotnet run
+   ```
+
+4. **Generate a Certificate:**
+
+   Make a request to the `/api/v1/certificate/generate` endpoint with the following JSON payload:
+
+   **Request:**
+
+   ```json
+   {
+     "student": {
+       "name": "John Doe",
+       "registration": "123456",
+       "document": {
+         "type": "ID",
+         "number": "987654321"
+       }
+     },
+     "course": {
+       "course": "Computer Science",
+       "workload": 200,
+       "disciplines": [
+         {
+           "discipline": "Algorithms",
+           "workload": 50,
+           "utilization": 90,
+           "conclusion": "2024-07-17T01:26:08.149Z"
+         },
+         {
+           "discipline": "Data Structures",
+           "workload": 50,
+           "utilization": 85,
+           "conclusion": "2024-07-17T01:26:08.149Z"
+         }
+       ]
+     },
+     "utilization": 87,
+     "conclusion": "2024-07-17T01:26:08.149Z"
+   }
+   ```
+
+5. **Response:**
+
+   The response will be in the following format:
+
+   **Response:**
+
+   ```json
+   {
+     "student": "John Doe",
+     "course": "Computer Science",
+     "workload": 200,
+     "utilization": 87,
+     "conclusion": "2024-07-17T01:27:20.537Z",
+     "files": [
+       {
+         "name": "sign_hash.pdf",
+         "download": "https://example.com/download/sign_hash.pdf",
+         "type": ".pdf",
+         "size": 123456
+       }
+     ]
+   }
+   ```
+
+By following these steps, you will have your API and handling services running, allowing you to generate and retrieve academic certificates through the specified endpoint.
+
+## 8. Parameters
+
+The `Parameters` section in the secrets and configurations YAML file defines various settings that are essential for the application's operation. These settings include configurations for storage paths, template files, event handling, and driver locations. Each parameter should be appropriately set up to ensure the application functions correctly.
+
+### Parameters Configuration
+
+```yaml
+Parameters:
+  BucketName: certificateshare
+  BucketPathPdf: pdf
+  BucketPathQR: qrcode
+  BucketKeyStamp: template/stamp.png
+  BucketKeyLogo: template/logo.png
+  BucketKeyTemplate: template/certificate_template.html
+  EventMaxAttemps: 10
+  EventMaxCallbacks: 10
+  DriverDir: /usr/local/bin
+```
+
+### Parameters Explanation
+
+- **BucketName**: The base bucket configuration. This bucket should be created before using the application.
+- **BucketPathPdf**: The base path configuration for saving PDF files. This path should be created before using the application.
+- **BucketPathQR**: The base path configuration for saving QR code files. This path should be created before using the application.
+- **BucketKeyStamp**: Path to the certificate stamp. The file is located in the `./assets` folder of the project.
+- **BucketKeyLogo**: Path to the certificate logo. The file is located in the `./assets` folder of the project.
+- **BucketKeyTemplate**: Path to the certificate template. The file is located in the `./assets` folder of the project.
+- **EventMaxAttemps**: Number of attempts the handling process will make to process an event.
+- **EventMaxCallbacks**: Number of parallel processes to handle a subscriber.
+- **DriverDir**: Location of the wkhtmltopdf driver if running on Linux.
+
+### Parameters Binding
+
+To bind these settings in your application, define a record in C#:
+
+```csharp
+public record Parameters
+{
+    public string BucketName { get; set; }
+    public string BucketPathPdf { get; set; }
+    public string BucketPathQR { get; set; }
+    public string BucketKeyStamp { get; set; }
+    public string BucketKeyLogo { get; set; }
+    public string BucketKeyTemplate { get; set; }
+    
+    public int EventMaxAttemps { get; set; }
+    public int EventMaxCallbacks { get; set; }
+    
+    public string DriverDir { get; set; }
+}
+```
+
+### Implementation of use
+
+```csharp
+public static IServiceCollection ConfigureParameters(this IServiceCollection services, IConfiguration configuration)
+{
+    services.Configure<Parameters>(configuration.GetSection("Parameters"));
+    return services;
+}
+```
+
+### Usage Example
+
+To use these parameters within your application, you can bind them in your `Startup` or `Program` class:
+
+```csharp
+builder.Services.ConfigureParameters(builder.Configuration);
+```
+
+This configuration ensures that all necessary parameters are loaded and available for your application to use, providing the flexibility and security needed to manage sensitive settings efficiently.
