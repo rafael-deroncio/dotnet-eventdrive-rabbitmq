@@ -240,14 +240,18 @@ To start the project, follow these steps:
      "conclusion": "2024-07-17T01:27:20.537Z",
      "files": [
        {
-         "name": "sign_hash.pdf",
-         "download": "https://example.com/download/sign_hash.pdf",
+         "name": "certificate_example.pdf",
+         "download": "https://example.com/download/certificate_example.pdf",
          "type": ".pdf",
          "size": 123456
        }
      ]
    }
    ```
+
+awaited in `files.download[0]` is:
+![Certificate Example](img/certificate_example.png)
+
 
 By following these steps, you will have your API and handling services running, allowing you to generate and retrieve academic certificates through the specified endpoint.
 
